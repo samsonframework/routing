@@ -1,4 +1,14 @@
 # SamsonFramework Router
+# Why this is the fastest router implementation ever?
+After gathering all routes in `RouteCollection` we perform router logic generation. In the end we have a generated 
+PHP function code which is used to find correct route identifier. All routes should have unique identifier, which 
+can be passed through constructor or would be generated automatically. In the end we get something similar 
+to this:
+```php
+function __router
+```
+ 
+ 
 ## Route creation
 ### Route variables
 Route pattern can have variable placeholder which is intend to be used as parameters for controller actions. All variable placeholder logic is very similar to awesome [FastRoute](https://github.com/nikic/FastRoute) package.
