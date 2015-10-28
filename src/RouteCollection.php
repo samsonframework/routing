@@ -8,7 +8,6 @@
 namespace samsonframework\routing;
 
 use samsonframework\routing\exception\IdentifierDuplication;
-use samsonframework\routing\exception\NoMatchFound;
 
 /**
  * Routes collection
