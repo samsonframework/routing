@@ -18,33 +18,9 @@ class Generator
      * @param RouteCollection $routesCollection Routes collection for generating routing logic function
      * @return string PHP code for routing logic
      */
-    public function generate(RouteCollection $routesCollection)
+    public function generate(RouteCollection & $routesCollection)
     {
-        // Build multi-dimensional route array-tree
-        $routeTree = array();
-        foreach ($routesCollection as $route) {
-            $map = array();
-            // Split pattern
-            foreach (explode('/', $route->pattern) as $routePart) {
-                // Remove empty parts
-                if (isset($routePart{0})) {
-                    $map[] = '["' . $routePart . '"]';
-                }
-            }
-
-            // Build array tree parameters from route pattern for building array structure
-            $treeArray = sizeof($map) ? implode('', $map) : '["' . $route->pattern . '"]';
-
-            //elapsed($route->pattern.' -> $routeTree' . $treeArray . '= $route->identifier;',1);
-
-            if (strpos($route->method, Route::METHOD_ANY) === false) {// Build dynamic array-tree structure for specific method
-                eval('$routeTree["' . $route->method . '"]' . $treeArray . '= $route->identifier;');
-            } else {// Build dynamic array-tree structure for all methods
-                foreach (Route::$METHODS as $method) {
-                    eval('$routeTree["' . $method . '"]' . $treeArray . '= $route->identifier;');
-                }
-            }
-        }
+        $routeTree = $this->createRoutesArray($routesCollection);
 
         /**
          * Iterate found route types and create appropriate router logic function
@@ -59,6 +35,62 @@ class Generator
         }
 
         return $routerCallerCode . '}';
+    }
+
+    /**
+     * Convert route pattern into PHP code array definition for building
+     * route array tree.
+     * @param Route $route Route for conversion
+     * @param string $arrayName Generating PHP code array name
+     * @return string Generated multidimensional array definition
+     */
+    protected function routeToArrayDefinition(Route & $route, $arrayName = '$routeTree')
+    {
+        /**
+         * Split route pattern into parts clearing empty values and form multi-dimensional
+         * array definition part.
+         */
+        $map = array();
+        foreach (array_filter(explode('/', $route->pattern)) as $routePart) {
+            $map[] = '["' . $routePart . '"]';
+        }
+
+        // Gather all found array definition parts or use whole pattern as it
+        $arrayDefinition = sizeof($map) ? implode('', $map) : '["' . $route->pattern . '"]';
+
+        // Build dynamic array-tree structure for specific method
+        $code = '';
+        if (strpos($route->method, Route::METHOD_ANY) === false) {
+            $code .= $arrayName.'["' . $route->method . '"]' . $arrayDefinition . '= $route->identifier;'."\n";
+        } else {// Build dynamic array-tree structure for all HTTP methods
+            foreach (Route::$METHODS as $method) {
+                $code .= $arrayName.'["' . $method . '"]' . $arrayDefinition . '= $route->identifier;'."\n";
+            }
+        }
+
+        return $code;
+    }
+
+    /**
+     * Convert routes collection into multidimensional array.
+     * @param RouteCollection $routesCollection Routes collection for conversion
+     * @return array Multi-dimensional array
+     */
+    protected function & createRoutesArray(RouteCollection & $routesCollection)
+    {
+        // Build multi-dimensional route array-tree
+        $arrayDefinition = '';
+        foreach ($routesCollection as $route) {
+            $arrayDefinition .= $this->routeToArrayDefinition($route, '$routeTree');
+            //elapsed($route->pattern.' -> $routeTree' . $treeArray . '= $route->identifier;',1);
+        }
+
+        // Create array variable
+        $routeTree = array();
+        // Define multi-dimensional route array
+        eval($arrayDefinition);
+
+        return $routeTree;
     }
 
     /**
