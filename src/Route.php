@@ -83,7 +83,7 @@ class Route
      * @param string $arrayName Generating PHP code array name
      * @return string Generated multidimensional array definition
      */
-    protected function toArrayDefinition($arrayName = '$routeTree')
+    public function toArrayDefinition($arrayName = '$routeTree')
     {
         /**
          * Split route pattern into parts clearing empty values and form multi-dimensional
