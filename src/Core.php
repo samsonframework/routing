@@ -37,7 +37,7 @@ class Core
         // Generate routing logic from routes
         $routerLogic = $generator->generate($this->routes);
 
-        //file_put_contents(s()->path() . 'www/cache/routing.cache.php', '<?php ' . $routerLogic);
+        file_put_contents(s()->path() . 'www/cache/routing.cache.php', '<?php ' . $routerLogic);
         //elapsed('Created routing logic');
 
         // Evaluate routing logic function

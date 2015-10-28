@@ -47,8 +47,8 @@ class Generator
         // Build multi-dimensional route array-tree
         $arrayDefinition = '';
         foreach ($routesCollection as $route) {
-            $arrayDefinition .= $route->toArrayDefinition($route, '$routeTree');
-            //elapsed($route->pattern.' -> $routeTree' . $treeArray . '= $route->identifier;',1);
+            $arrayDefinition .= $route->toArrayDefinition('$routeTree');
+            //elapsed($route->pattern.' -> $routeTree' . $route->toArrayDefinition('$routeTree') . '= $route->identifier;',1);
         }
 
         // Create array variable
@@ -84,7 +84,7 @@ class Generator
 
             // Count indexes
             $stLength = strlen($path);
-            $stIndex = $stLength + 1;
+            $stIndex = $placeholder == '/' ? 0 : $stLength + 1;
             $length = strlen($placeholder);
 
             // Check if placeholder is a route variable
