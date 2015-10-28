@@ -37,50 +37,6 @@ class RouteCollection implements \ArrayAccess, \Iterator
     }
 
     /**
-     * Find matching route by path
-     * @param string $path Path for matching route patterns
-     * @throws NoMatchFound
-     * @returns Route|boolean Matched route or false
-     */
-    public function match($path)
-    {
-        //$this->debug();
-        // Create route for comparing patterns
-        $matchingRoute = new Route('', 'echo');
-        foreach ($this->routes as $route) {
-            //trace('Comparing: path:"'.$path.'" "'.$route->regexpPattern.'" with "'.$matchingRoute->regexpPattern.'"', 1);
-            // Try to match this route with path and store pattern length
-            $matchingResult = $route->match($path);
-            // Search for longest pattern matching route
-            if ($matchingResult !== false && strlen($matchingRoute->pattern) <= $matchingResult) {
-                //trace('Found matching route:"'.$route->pattern.'"');
-                // Store longest matching route
-                $matchingRoute = $route;
-            }
-        }
-
-        // Check if we have found other route then default
-        if ($matchingRoute->pattern !== '') {
-            //trace('Found route: "'.$matchingRoute->pattern.'"',1);
-            return $matchingRoute;
-        }
-
-        // If we are here - no route matches path
-        throw new NoMatchFound();
-    }
-
-    public function debug()
-    {
-        $output = array();
-        foreach ($this->routes as $route) {
-            $output[] = $route->pattern.'-'.$route->regexpPattern.'-'.$route->identifier.'-';
-        }
-
-
-        trace($output);
-    }
-
-    /**
      * Add route
      * @param Route $route
      * @throws IdentifierDuplication
