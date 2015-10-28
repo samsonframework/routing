@@ -53,8 +53,6 @@ class Route
      * @param callable $callback Callback for route
      * @param string|null $identifier Route unique identifier, if empty - unique will be generated
      * @param string $method HTTP request method
-     * @param bool|false $async Route asynchronous flag
-     * @param bool|false $cache Route caching flag
      */
     public function __construct($pattern, $callback, $identifier = null, $method = self::METHOD_ANY)
     {
@@ -82,14 +80,14 @@ class Route
      */
     public function internalToRegExp($input)
     {
-        return '/^'.
+        return '/^' .
+        str_ireplace(
+            '/', '\/',
             str_ireplace(
-                '/', '\/',
-                str_ireplace(
-                    '/*', '/.*',
-                    preg_replace('/@([a-z0-9]_-+)/ui', '(?<$1>[^/]+)', $input)
-                )
-            ).'/ui';
+                '/*', '/.*',
+                preg_replace('/@([a-z0-9]_-+)/ui', '(?<$1>[^/]+)', $input)
+            )
+        ) . '/ui';
     }
 
     /**
@@ -100,7 +98,7 @@ class Route
     public function match($path)
     {
         $matches = array();
-        if(preg_match($this->regexpPattern, $path, $matches)){
+        if (preg_match($this->regexpPattern, $path, $matches)) {
             //trace('Match: '.$this->regexpPattern.'('.strlen($this->pattern).')',1);
             return strlen($this->pattern);
         } else {

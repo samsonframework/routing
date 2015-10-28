@@ -199,7 +199,7 @@ class RouteCollection implements \ArrayAccess, \Iterator
     public function valid()
     {
         $key = key($this->routes);
-        return ($key !== NULL && $key !== FALSE);
+        return ($key !== null && $key !== false);
     }
 
     /**

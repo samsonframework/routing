@@ -64,13 +64,13 @@ class Generator
     /**
      * Create router logic function.
      * This method is recursive
-     * @param array|string $dataPointer Collection of routes or route identifier
+     * @param array $dataPointer Collection of routes or route identifier
      * @param string $path Current route tree path
      * @param string $code Final result
      * @param int $level Recursion level
      * @return string Router logic function
      */
-    protected function recursiveGenerate(&$dataPointer, $path, &$code = '', $level = 1)
+    protected function recursiveGenerate(array &$dataPointer, $path, &$code = '', $level = 1)
     {
         /** @var bool $conditionStarted Flag for creating conditions */
         $conditionStarted = false;
