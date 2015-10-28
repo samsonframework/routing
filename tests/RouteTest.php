@@ -9,6 +9,11 @@ namespace samsonframework\routing\tests;
 
 use samsonframework\routing\Route;
 
+function globalRouteCallback()
+{
+
+}
+
 class RouteTest extends \PHPUnit_Framework_TestCase
 {
     public function routeCallback()
@@ -20,7 +25,7 @@ class RouteTest extends \PHPUnit_Framework_TestCase
     {
         $route = new Route(
             '/',
-            array($this, 'routeCallback'),
+            'globalRouteCallback',
             'test-route',
             Route::METHOD_GET
         );
