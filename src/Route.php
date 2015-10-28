@@ -39,9 +39,6 @@ class Route
     /** @var string Internal pattern for matching */
     public $pattern;
 
-    /** @var string RegExp compiled from internal pattern for matching */
-    public $regexpPattern;
-
     /** @var array Parameters configuration */
     public $parameters = array();
 
@@ -61,9 +58,16 @@ class Route
         $this->method = $method;
         // Every route should have an identifier otherwise create unique
         $this->identifier = isset($identifier) ? $identifier : uniqid('route');
-        // Compile to regexp
-        $this->regexpPattern = $this->internalToRegExp($this->pattern);
 
+        $this->analyzeParameters($callback);
+    }
+
+    /**
+     * Analyze callback parameters and store their names
+     * @param callback $callback Callback for analyzing
+     */
+    protected function analyzeParameters($callback)
+    {
         // Parse callback signature and get parameters list
         if (is_callable($callback)) {
             $reflectionMethod = is_array($callback) ? new \ReflectionMethod($callback[0], $callback[1]) : new \ReflectionFunction($callback);
@@ -74,35 +78,35 @@ class Route
     }
 
     /**
-     * Transform internal pattern format to RegExp
-     * @param string $input Internal format route pattern
-     * @return string RegExp prepared pattern
+     * Convert route pattern into PHP code array definition for building
+     * route array tree.
+     * @param string $arrayName Generating PHP code array name
+     * @return string Generated multidimensional array definition
      */
-    public function internalToRegExp($input)
+    protected function toArrayDefinition($arrayName = '$routeTree')
     {
-        return '/^' .
-        str_ireplace(
-            '/', '\/',
-            str_ireplace(
-                '/*', '/.*',
-                preg_replace('/@([a-z0-9]_-+)/ui', '(?<$1>[^/]+)', $input)
-            )
-        ) . '/ui';
-    }
-
-    /**
-     * Try matching route pattern with path
-     * @param string $path Path for matching route
-     * @return int Matched pattern length
-     */
-    public function match($path)
-    {
-        $matches = array();
-        if (preg_match($this->regexpPattern, $path, $matches)) {
-            //trace('Match: '.$this->regexpPattern.'('.strlen($this->pattern).')',1);
-            return strlen($this->pattern);
-        } else {
-            return false;
+        /**
+         * Split route pattern into parts clearing empty values and form multi-dimensional
+         * array definition part.
+         */
+        $map = array();
+        foreach (array_filter(explode('/', $this->pattern)) as $routePart) {
+            $map[] = '["' . $routePart . '"]';
         }
+
+        // Gather all found array definition parts or use whole pattern as it
+        $arrayDefinition = sizeof($map) ? implode('', $map) : '["' . $this->pattern . '"]';
+
+        // Build dynamic array-tree structure for specific method
+        $code = '';
+        if (strpos($this->method, self::METHOD_ANY) === false) {
+            $code .= $arrayName.'["' . $this->method . '"]' . $arrayDefinition . '= $route->identifier;'."\n";
+        } else {// Build dynamic array-tree structure for all HTTP methods
+            foreach (self::$METHODS as $method) {
+                $code .= $arrayName.'["' . $method . '"]' . $arrayDefinition . '= $route->identifier;'."\n";
+            }
+        }
+
+        return $code;
     }
 }
