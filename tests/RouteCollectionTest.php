@@ -7,7 +7,6 @@
  */
 namespace samsonframework\routing\tests;
 
-use samsonframework\routing\Generator;
 use samsonframework\routing\Route;
 use samsonframework\routing\RouteCollection;
 
