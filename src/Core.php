@@ -10,7 +10,8 @@ namespace samsonframework\routing;
 use samsonframework\routing\exception\FailedLogicCreation;
 
 /**
- * Main routing logic
+ * Main routing logic.
+ *
  * @package samsonframework\routing
  */
 class Core
