@@ -43,6 +43,9 @@ class Core
         //elapsed('Started dispatching routes');
         $result = false;
 
+        // Remove GET parameters
+        $path = strtok($path, '?');
+
         if (function_exists('__router')) {
             // Perform routing logic
             if (is_array($routeData = __router($path, $this->routes, $method))) {

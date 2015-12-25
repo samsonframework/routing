@@ -78,7 +78,7 @@ class Generator
         $tabs = implode('', array_fill(0, $level, ' '));
         foreach ($dataPointer as $placeholder => $data) {
             // Concatenate path
-            $newPath = $path . '/' . $placeholder;
+            $newPath = $path . '/' . ($placeholder == '/' ? '' : $placeholder);
 
             // Add route description as a comment
             $code .= $tabs . '// ' . $newPath . "\n";
