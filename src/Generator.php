@@ -22,6 +22,8 @@ class Generator
     {
         $routeTree = $this->createRoutesArray($routesCollection);
 
+        $conditionStarted = false;
+
         /**
          * Iterate found route types and create appropriate router logic function
          * for each route type/method key using specific $routeTree branch
@@ -29,9 +31,10 @@ class Generator
         $routerCallerCode = 'function __router($path, &$routes, $method){' . "\n";
         $routerCallerCode .= '$matches = array();' . "\n";
         foreach ($routeTree as $routeMethod => $routes) {
-            $routerCallerCode .= 'if ($method === "' . $routeMethod . '") {' . "\n";
+            $routerCallerCode .= ($conditionStarted? 'else' : '').'if ($method === "' . $routeMethod . '") {' . "\n";
             $routerCallerCode .= $this->recursiveGenerate($routeTree[$routeMethod], '') . "\n";
             $routerCallerCode .= '}' . "\n";
+            $conditionStarted = true;
         }
 
         return $routerCallerCode . '}';
