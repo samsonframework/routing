@@ -29,12 +29,11 @@ class Core
     }
 
     /**
-     * Dispatch HTTP request
-     * @param $path
-     * @param $routes
-     * @param $type
-     * @param $method
-     * @param null $route
+     * Dispatch HTTP request into callback.
+     *
+     * @param string $path HTTP request path
+     * @param string $method HTTP request method
+     * @param Route|null $route Found Route instance
      * @return bool|mixed
      * @throws FailedLogicCreation
      */
