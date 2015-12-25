@@ -41,6 +41,7 @@ class Core
     protected function dispatch($path, $method, &$route = null)
     {
         //elapsed('Started dispatching routes');
+        $result = false;
 
         if (function_exists('__router')) {
             // Perform routing logic
@@ -59,11 +60,11 @@ class Core
                 $result = is_callable($route->callback)
                     ? call_user_func_array($route->callback, $parameters)
                     : false;
-
-                return isset($result) ? $result : true;
             }
-        }
 
-        throw new FailedLogicCreation();
+            return isset($result) ? $result : true;
+        } else {
+            throw new FailedLogicCreation();
+        }
     }
 }

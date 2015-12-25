@@ -97,17 +97,23 @@ class Generator
                 //$code .= $tabs . 'trace("I am at ' . $path . '", 1);';
                 // When we have route parameter we do not split logic tree as different parameters can match
                 $conditionStarted = false;
-            } else { // Generate route placeholder comparison
-                $code .= $tabs . ($conditionStarted ? 'else ' : '') . 'if (substr($path, ' . $stIndex . ', ' . $length . ') === "' . $placeholder . '" ) {' . "\n";
-                //$code .= $tabs . 'trace("I am at ' . $path . '", 1);';
+            } else {
+                // This is route end - call handler
+                if (is_string($data)) {
+                    $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if ($path === "' . $newPath . '" ) {' . "\n";
+                } else { // Generate route placeholder comparison
+                    $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if (substr($path, ' . $stIndex . ', ' . $length . ') === "' . $placeholder . '" ) {' . "\n";
+                }
                 // Flag that condition group has been started
                 $conditionStarted = true;
             }
 
             // This is route end - call handler
             if (is_string($data)) {
+                // Finish route parsing
                 $code .= $tabs . '     return array($routes["' . $data . '"], $matches);' . "\n";
             } else { // Go deeper in recursion
+                // Go deeper in recursion
                 $this->recursiveGenerate($data, $newPath, $code, $level + 5);
             }
 
