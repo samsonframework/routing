@@ -16,5 +16,5 @@ interface RouteGeneratorInterface
     /**
      * @return RouteCollection Collection of generated routes
      */
-    public function & generate();
+    public function &generate();
 }
