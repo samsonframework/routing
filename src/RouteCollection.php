@@ -36,8 +36,9 @@ class RouteCollection implements \ArrayAccess, \Iterator
     }
 
     /**
-     * Add route
-     * @param Route $route
+     * Add route.
+     *
+     * @param Route $route˚
      * @throws IdentifierDuplication
      */
     public function add(Route $route)
@@ -47,6 +48,21 @@ class RouteCollection implements \ArrayAccess, \Iterator
         } else {
             throw new IdentifierDuplication('Identifier['.$route->identifier.'] already exists');
         }
+    }
+
+    /**
+     * Generate a hash representing current routes collection state.
+     *
+     * @param string $salt
+     * @return string Hash string representing routes collection
+     */
+    public function hash($salt = '')
+    {
+        $hash = '';
+        foreach ($this->routes as $identifier => $route) {
+            $hash = md5($identifier.$hash);
+        }
+        return md5($hash.$salt);
     }
 
     /**

@@ -6,6 +6,7 @@
  * Time: 16:20
  */
 namespace samsonframework\routing;
+
 use samsonframework\routing\exception\FailedLogicCreation;
 
 /**
@@ -16,6 +17,16 @@ class Core
 {
     /** @var RouteCollection Collection of all application routes */
     protected $routes = array();
+
+    /**
+     * Core constructor.
+     *
+     * @param RouteCollection $routes Routes collection for dispatching
+     */
+    public function __construct(RouteCollection &$routes)
+    {
+        $this->routes = $routes;
+    }
 
     /**
      * Dispatch HTTP request
@@ -31,17 +42,6 @@ class Core
     {
         //elapsed('Started dispatching routes');
 
-        // Create routing logic generator
-        $generator = new Generator();
-
-        // Generate routing logic from routes
-        $routerLogic = $generator->generate($this->routes);
-
-        file_put_contents(s()->path() . 'www/cache/routing.cache.php', '<?php ' . $routerLogic);
-        //elapsed('Created routing logic');
-
-        // Evaluate routing logic function
-        eval($routerLogic);
         if (function_exists('__router')) {
             // Perform routing logic
             if (is_array($routeData = __router($path, $this->routes, $method))) {
@@ -51,12 +51,14 @@ class Core
 
                 // Gather parsed route parameters in correct order
                 $parameters = array();
-                foreach ($route->parameters as $index => $name) {
+                foreach ($route->parameters as $name) {
                     $parameters[] = &$routeData[1][$name];
                 }
 
                 // Perform route callback action
-                $result = is_callable($route->callback) ? call_user_func_array($route->callback, $parameters) : false;
+                $result = is_callable($route->callback)
+                    ? call_user_func_array($route->callback, $parameters)
+                    : false;
 
                 return isset($result) ? $result : true;
             }

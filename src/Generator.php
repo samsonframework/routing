@@ -18,7 +18,7 @@ class Generator
      * @param RouteCollection $routesCollection Routes collection for generating routing logic function
      * @return string PHP code for routing logic
      */
-    public function generate(RouteCollection & $routesCollection)
+    public function generate(RouteCollection &$routesCollection)
     {
         $routeTree = $this->createRoutesArray($routesCollection);
 
@@ -26,7 +26,7 @@ class Generator
          * Iterate found route types and create appropriate router logic function
          * for each route type/method key using specific $routeTree branch
          */
-        $routerCallerCode = 'function __router($path, & $routes, $method){' . "\n";
+        $routerCallerCode = 'function __router($path, &$routes, $method){' . "\n";
         $routerCallerCode .= '$matches = array();' . "\n";
         foreach ($routeTree as $routeMethod => $routes) {
             $routerCallerCode .= 'if ($method === "' . $routeMethod . '") {' . "\n";
@@ -42,19 +42,17 @@ class Generator
      * @param RouteCollection $routesCollection Routes collection for conversion
      * @return array Multi-dimensional array
      */
-    protected function & createRoutesArray(RouteCollection & $routesCollection)
+    protected function &createRoutesArray(RouteCollection & $routesCollection)
     {
-        // Build multi-dimensional route array-tree
-        $arrayDefinition = '';
-        foreach ($routesCollection as $route) {
-            $arrayDefinition .= $route->toArrayDefinition('$routeTree');
-            //elapsed($route->pattern.' -> $routeTree' . $route->toArrayDefinition('$routeTree') . '= $route->identifier;',1);
-        }
-
         // Create array variable
         $routeTree = array();
-        // Define multi-dimensional route array
-        eval($arrayDefinition);
+
+        // Build multi-dimensional route array-tree
+        foreach ($routesCollection as $route) {
+            // Define multi-dimensional route array
+            eval($route->toArrayDefinition('$routeTree'));
+            //elapsed($route->pattern.' -> $routeTree' . $route->toArrayDefinition('$routeTree') . '= $route->identifier;',1);
+        }
 
         return $routeTree;
     }
