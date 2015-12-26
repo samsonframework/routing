@@ -49,6 +49,8 @@ class Route
     public $callback;
 
     /**
+     * Route constructor.
+     *
      * @param string $pattern Route matching pattern
      * @param callable $callback Callback for route
      * @param string|null $identifier Route unique identifier, if empty - unique will be generated
@@ -66,7 +68,8 @@ class Route
     }
 
     /**
-     * Analyze callback parameters and store their names
+     * Analyze callback parameters and store their names.
+     *
      * @param callback $callback Callback for analyzing
      */
     protected function analyzeParameters($callback)
@@ -83,6 +86,7 @@ class Route
     /**
      * Convert route pattern into PHP code array definition for building
      * route array tree.
+     *
      * @param string $arrayName Generating PHP code array name
      * @return string Generated multidimensional array definition
      */
