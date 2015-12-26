@@ -100,10 +100,10 @@ class Route
         // Build dynamic array-tree structure for specific method
         $code = '';
         if (strpos($this->method, self::METHOD_ANY) === false) {
-            $code .= $arrayName.'["' . $this->method . '"]' . $arrayDefinition . '= $route->identifier;'."\n";
+            $code .= $arrayName.'["' . $this->method . '"]' . $arrayDefinition . '[]= $route->identifier;'."\n";
         } else {// Build dynamic array-tree structure for all HTTP methods
             foreach (self::$METHODS as $method) {
-                $code .= $arrayName.'["' . $method . '"]' . $arrayDefinition . '= $route->identifier;'."\n";
+                $code .= $arrayName.'["' . $method . '"]' . $arrayDefinition . '[]= $route->identifier;'."\n";
             }
         }
 

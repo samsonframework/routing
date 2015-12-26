@@ -32,7 +32,7 @@ class Generator
         $routerCallerCode .= '$matches = array();' . "\n";
         foreach ($routeTree as $routeMethod => $routes) {
             $routerCallerCode .= ($conditionStarted? 'else' : '').'if ($method === "' . $routeMethod . '") {' . "\n";
-            $routerCallerCode .= $this->recursiveGenerate($routeTree[$routeMethod], '') . "\n";
+            $routerCallerCode .= $this->recursiveGenerate($routeTree[$routeMethod], '/') . "\n";
             $routerCallerCode .= '}' . "\n";
             $conditionStarted = true;
         }
@@ -45,7 +45,7 @@ class Generator
      * @param RouteCollection $routesCollection Routes collection for conversion
      * @return array Multi-dimensional array
      */
-    protected function &createRoutesArray(RouteCollection & $routesCollection)
+    protected function &createRoutesArray(RouteCollection &$routesCollection)
     {
         // Create array variable
         $routeTree = array();
@@ -54,7 +54,7 @@ class Generator
         foreach ($routesCollection as $route) {
             // Define multi-dimensional route array
             eval($route->toArrayDefinition('$routeTree'));
-            //elapsed($route->pattern.' -> $routeTree' . $route->toArrayDefinition('$routeTree') . '= $route->identifier;',1);
+            //elapsed($route->pattern.' -> ' . $route->toArrayDefinition('$routeTree') . '= $route->identifier;',1);
         }
 
         return $routeTree;
@@ -77,15 +77,15 @@ class Generator
         // Count left spacing to make code looks better
         $tabs = implode('', array_fill(0, $level, ' '));
         foreach ($dataPointer as $placeholder => $data) {
-            // Concatenate path
-            $newPath = $path . '/' . ($placeholder == '/' ? '' : $placeholder);
+            // All routes should be finished with closing slash
+            $newPath = rtrim($path . $placeholder, '/') . '/';
 
             // Add route description as a comment
             $code .= $tabs . '// ' . $newPath . "\n";
 
             // Count indexes
             $stLength = strlen($path);
-            $stIndex = $placeholder == '/' ? 0 : $stLength + 1;
+            $stIndex = $stLength;
             $length = strlen($placeholder);
 
             // Check if placeholder is a route variable
@@ -97,13 +97,12 @@ class Generator
                 // limit it either by closest brace(}) to the right or to the end of the string
                 $code .= $tabs . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter . ')/i", substr($path, ' . $stIndex . ',  strpos($path, "/", ' . $stLength . ') ? strlen($path) - strpos($path, "/", ' . $stLength . ') : 0), $matches)) {' . "\n";
 
-                //$code .= $tabs . 'trace("I am at ' . $path . '", 1);';
                 // When we have route parameter we do not split logic tree as different parameters can match
                 $conditionStarted = false;
             } else {
                 // This is route end - call handler
                 if (is_string($data)) {
-                    $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if ($path === "' . $newPath . '" ) {' . "\n";
+                    $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if ($path === "' . $newPath . '") {' . "\n";
                 } else { // Generate route placeholder comparison
                     $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if (substr($path, ' . $stIndex . ', ' . $length . ') === "' . $placeholder . '" ) {' . "\n";
                 }
@@ -116,7 +115,6 @@ class Generator
                 // Finish route parsing
                 $code .= $tabs . '     return array($routes["' . $data . '"], $matches);' . "\n";
             } else { // Go deeper in recursion
-                // Go deeper in recursion
                 $this->recursiveGenerate($data, $newPath, $code, $level + 5);
             }
 
