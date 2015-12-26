@@ -98,10 +98,10 @@ class Generator
 
                 // Generate parameter route parsing, logic is that parameter can have any length so we
                 // limit it either by closest brace(}) to the right or to the end of the string
-                $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter . ')/i", substr($path, ' . $stIndex . ',  strpos($path, "/", ' . $stLength . ') ? strlen($path) - strpos($path, "/", ' . $stLength . ') : 0), $matches)) {' . "\n";
+                $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter . ')/i", substr($path, ' . $stIndex . ',  strpos($path, "/", ' . $stLength . ') ? strlen($path) - strpos($path, "/", ' . $stLength . ') : strlen($path)), $matches)) {' . "\n";
 
                 // When we have route parameter we do not split logic tree as different parameters can match
-                $conditionStarted = false;
+                //$conditionStarted = false;
             } else {
                 // This is route end - call handler
                 if (is_string($data) || (is_array($data) && isset($data[0]) && sizeof($data) === 1)) {
