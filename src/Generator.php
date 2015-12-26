@@ -104,7 +104,7 @@ class Generator
                 $conditionStarted = false;
             } else {
                 // This is route end - call handler
-                if (is_array($data) && sizeof($data) === 1) {
+                if (is_string($data) || (is_array($data) && isset($data[0]) && sizeof($data) === 1)) {
                     $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if ($path === "' . $newPath . '") {' . "\n";
                 } else { // Generate route placeholder comparison
                     $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if (substr($path, ' . $stIndex . ', ' . $length . ') === "' . $placeholder . '" ) {' . "\n";
