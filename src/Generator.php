@@ -111,9 +111,9 @@ class Generator
             }
 
             // This is route end - call handler
-            if (is_string($data)) {
+            if (is_array($data) && sizeof($data) === 1) {
                 // Finish route parsing
-                $code .= $tabs . '     return array($routes["' . $data . '"], $matches);' . "\n";
+                $code .= $tabs . '     return array($routes["' . $data[0] . '"], $matches);' . "\n";
             } else { // Go deeper in recursion
                 $this->recursiveGenerate($data, $newPath, $code, $level + 5);
             }
