@@ -84,7 +84,7 @@ class Generator
             $newPath = rtrim($path . $placeholder, '/') . '/';
 
             // Add route description as a comment
-            $code .= $tabs . '// ' . $newPath . "\n";
+            //$code .= $tabs . '// ' . $newPath . "\n";
 
             // Count indexes
             $stLength = strlen($path);
@@ -114,7 +114,7 @@ class Generator
             }
 
             // This is route end - call handler
-            if (is_array($data) && sizeof($data) === 1) {
+            if (is_string($data) || (is_array($data) && isset($data[0]) && sizeof($data) === 1)) {
                 // Finish route parsing
                 $code .= $tabs . '     return array($routes["' . $data[0] . '"], $matches);' . "\n";
             } else { // Go deeper in recursion
