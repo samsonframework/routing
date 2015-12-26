@@ -48,10 +48,10 @@ class Core
 
         if (function_exists('__router')) {
             // Perform routing logic
-            if (is_array($routeData = __router($path, $this->routes, $method))) {
+            if (is_array($routeData = __router($path, $method))) {
                 //elapsed('Found route');
                 /** @var Route $route Retrieve found Route object */
-                $route = $routeData[0];
+                $route = $this->routes[$routeData[0]];
 
                 // Gather parsed route parameters in correct order
                 $parameters = array();

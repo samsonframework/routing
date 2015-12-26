@@ -28,7 +28,7 @@ class Generator
          * Iterate found route types and create appropriate router logic function
          * for each route type/method key using specific $routeTree branch
          */
-        $routerCallerCode = 'function __router($path, &$routes, $method){' . "\n";
+        $routerCallerCode = 'function __router($path, $method){' . "\n";
         $routerCallerCode .= '$matches = array();' . "\n";
         foreach ($routeTree as $routeMethod => $routes) {
             $routerCallerCode .= ($conditionStarted? 'else' : '').'if ($method === "' . $routeMethod . '") {' . "\n";
@@ -116,7 +116,7 @@ class Generator
             // This is route end - call handler
             if (is_string($data) || (is_array($data) && isset($data[0]) && sizeof($data) === 1)) {
                 // Finish route parsing
-                $code .= $tabs . '     return array($routes["' . $data[0] . '"], $matches);' . "\n";
+                $code .= $tabs . '     return array("' . $data[0] . '", $matches);' . "\n";
             } else { // Go deeper in recursion
                 $this->recursiveGenerate($data, $newPath, $code, $level + 5);
             }
