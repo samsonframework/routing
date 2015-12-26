@@ -77,6 +77,9 @@ class Generator
         // Count left spacing to make code looks better
         $tabs = implode('', array_fill(0, $level, ' '));
         foreach ($dataPointer as $placeholder => $data) {
+            if ($placeholder === 0) {
+                continue;
+            }
             // All routes should be finished with closing slash
             $newPath = rtrim($path . $placeholder, '/') . '/';
 
@@ -95,13 +98,13 @@ class Generator
 
                 // Generate parameter route parsing, logic is that parameter can have any length so we
                 // limit it either by closest brace(}) to the right or to the end of the string
-                $code .= $tabs . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter . ')/i", substr($path, ' . $stIndex . ',  strpos($path, "/", ' . $stLength . ') ? strlen($path) - strpos($path, "/", ' . $stLength . ') : 0), $matches)) {' . "\n";
+                $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter . ')/i", substr($path, ' . $stIndex . ',  strpos($path, "/", ' . $stLength . ') ? strlen($path) - strpos($path, "/", ' . $stLength . ') : 0), $matches)) {' . "\n";
 
                 // When we have route parameter we do not split logic tree as different parameters can match
                 $conditionStarted = false;
             } else {
                 // This is route end - call handler
-                if (is_string($data)) {
+                if (is_array($data) && sizeof($data) === 1) {
                     $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if ($path === "' . $newPath . '") {' . "\n";
                 } else { // Generate route placeholder comparison
                     $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if (substr($path, ' . $stIndex . ', ' . $length . ') === "' . $placeholder . '" ) {' . "\n";
