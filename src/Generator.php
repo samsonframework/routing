@@ -75,6 +75,8 @@ class Generator
         /** @var bool $conditionStarted Flag for creating conditions */
         $conditionStarted = false;
 
+        $foundKey = false;
+
         // Count left spacing to make code looks better
         $tabs = implode('', array_fill(0, $level, ' '));
         foreach ($dataPointer as $placeholder => $data) {
@@ -85,12 +87,10 @@ class Generator
             $stLength = strlen($path);
             $length = strlen($placeholder);
 
+            // Ignore current logic branch in main loop
             if ($placeholder === Route::ROUTE_KEY) {
-                $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if ($path === "' . $path . '") {' . "\n";
-                $code .= $tabs . '     return array("' . $data . '", $matches);' . "\n";
-
-                // Flag that condition group has been started
-                $conditionStarted = true;
+                $foundKey = true;
+                continue;
             } else {
                 // Check if placeholder is a route variable
                 if (preg_match('/{(?<name>[^}:]+)(\t*:\t*(?<filter>[^}]+))?}/i', $placeholder, $matches)) {
@@ -119,6 +119,14 @@ class Generator
                     $this->recursiveGenerate($data, $newPath, $code, $level + 5);
                 }
             }
+            // Close current route condition group
+            $code .= $tabs . '}' . "\n";
+        }
+
+        // Always add last condition for parrent branch if needed
+        if ($foundKey) {
+            $code .= $tabs . 'else {' . "\n";
+            $code .= $tabs . '     return array("' . $dataPointer[Route::ROUTE_KEY] . '", $matches);' . "\n";
             // Close current route condition group
             $code .= $tabs . '}' . "\n";
         }
