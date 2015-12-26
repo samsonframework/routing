@@ -19,14 +19,15 @@ class RouteCollection implements \ArrayAccess, \Iterator
     protected $routes = array();
 
     /**
-     * Merger two routes collections
+     * Merger two routes collections.
+     *
      * @param RouteCollection $collection
      * @throws IdentifierDuplication
      * @returns RouteCollection New route collection instance
      */
     public function merge(RouteCollection $collection)
     {
-        $newCollection = clone $this;
+        $newCollection = $this;
 
         foreach ($collection as $route) {
             $newCollection->add($route);

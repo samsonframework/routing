@@ -63,6 +63,7 @@ class Generator
     /**
      * Create router logic function.
      * This method is recursive
+     *
      * @param array $dataPointer Collection of routes or route identifier
      * @param string $path Current route tree path
      * @param string $code Final result
@@ -77,50 +78,47 @@ class Generator
         // Count left spacing to make code looks better
         $tabs = implode('', array_fill(0, $level, ' '));
         foreach ($dataPointer as $placeholder => $data) {
-            if ($placeholder === 0) {
-                continue;
-            }
             // All routes should be finished with closing slash
             $newPath = rtrim($path . $placeholder, '/') . '/';
 
-            // Add route description as a comment
-            //$code .= $tabs . '// ' . $newPath . "\n";
-
             // Count indexes
             $stLength = strlen($path);
-            $stIndex = $stLength;
             $length = strlen($placeholder);
 
-            // Check if placeholder is a route variable
-            if (preg_match('/{(?<name>[^}:]+)(\t*:\t*(?<filter>[^}]+))?}/i', $placeholder, $matches)) {
-                // Define parameter filter or use generic
-                $filter = isset($matches['filter']) ? $matches['filter'] : '[0-9a-z_]+';
+            if ($placeholder === Route::ROUTE_KEY) {
+                $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if ($path === "' . $path . '") {' . "\n";
+                $code .= $tabs . '     return array("' . $data . '", $matches);' . "\n";
 
-                // Generate parameter route parsing, logic is that parameter can have any length so we
-                // limit it either by closest brace(}) to the right or to the end of the string
-                $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter . ')/i", substr($path, ' . $stIndex . ',  strpos($path, "/", ' . $stLength . ') ? strlen($path) - strpos($path, "/", ' . $stLength . ') : strlen($path)), $matches)) {' . "\n";
-
-                // When we have route parameter we do not split logic tree as different parameters can match
-                //$conditionStarted = false;
+                // Flag that condition group has been started
+                $conditionStarted = true;
             } else {
-                // This is route end - call handler
-                if (is_string($data) || (is_array($data) && isset($data[0]) && sizeof($data) === 1)) {
-                    $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if ($path === "' . $newPath . '") {' . "\n";
-                } else { // Generate route placeholder comparison
-                    $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if (substr($path, ' . $stIndex . ', ' . $length . ') === "' . $placeholder . '" ) {' . "\n";
+                // Check if placeholder is a route variable
+                if (preg_match('/{(?<name>[^}:]+)(\t*:\t*(?<filter>[^}]+))?}/i', $placeholder, $matches)) {
+                    // Define parameter filter or use generic
+                    $filter = isset($matches['filter']) ? $matches['filter'] : '[0-9a-z_]+';
+
+                    // Generate parameter route parsing, logic is that parameter can have any length so we
+                    // limit it either by closest brace(}) to the right or to the end of the string
+                    $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter . ')/i", substr($path, ' . $stLength . ',  strpos($path, "/", ' . $stLength . ') ? strlen($path) - strpos($path, "/", ' . $stLength . ') : strlen($path)), $matches)) {' . "\n";
+                } else {
+                    // This is route end - call handler
+                    if (sizeof($data) === 1 && isset($data[Route::ROUTE_KEY])) {
+                        $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if ($path === "' . $newPath . '") {' . "\n";
+                    } else { // Generate route placeholder comparison
+                        $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if (substr($path, ' . $stLength . ', ' . $length . ') === "' . $placeholder . '" ) {' . "\n";
+                    }
                 }
                 // Flag that condition group has been started
                 $conditionStarted = true;
-            }
 
-            // This is route end - call handler
-            if (is_string($data) || (is_array($data) && isset($data[0]) && sizeof($data) === 1)) {
-                // Finish route parsing
-                $code .= $tabs . '     return array("' . $data[0] . '", $matches);' . "\n";
-            } else { // Go deeper in recursion
-                $this->recursiveGenerate($data, $newPath, $code, $level + 5);
+                // This is route end - call handler
+                if (sizeof($data) === 1 && isset($data[Route::ROUTE_KEY])) {
+                    // Finish route parsing
+                    $code .= $tabs . '     return array("' . $data[Route::ROUTE_KEY] . '", $matches);' . "\n";
+                } else { // Go deeper in recursion
+                    $this->recursiveGenerate($data, $newPath, $code, $level + 5);
+                }
             }
-
             // Close current route condition group
             $code .= $tabs . '}' . "\n";
         }
