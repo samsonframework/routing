@@ -16,9 +16,9 @@ function globalRouteCallback()
 
 class RouteTest extends \PHPUnit_Framework_TestCase
 {
-    public function routeCallback()
+    public function routeCallback($paramter, $optionalParameter = '1')
     {
-
+        //dummy
     }
 
     public function testBaseToArrayDefinition()
@@ -52,7 +52,7 @@ class RouteTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(
             '$routeTree["GET"]["user"]["{id:\d}"]["form"]["valid"]["'.Route::ROUTE_KEY.'"]= $route->identifier;'."\n",
             $definition
-            );
+        );
     }
 
     public function testAnyToArrayDefinition()
