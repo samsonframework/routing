@@ -29,6 +29,7 @@ class RouteCollection implements \ArrayAccess, \Iterator
     {
         $newCollection = $this;
 
+        /** @var Route $route */
         foreach ($collection as $route) {
             $newCollection->add($route);
         }
@@ -39,7 +40,7 @@ class RouteCollection implements \ArrayAccess, \Iterator
     /**
      * Add route.
      *
-     * @param Route $route˚
+     * @param Route $route Route instance for addition
      * @throws IdentifierDuplication
      */
     public function add(Route $route)
