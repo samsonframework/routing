@@ -67,10 +67,18 @@ class Generator
         return $routeTree;
     }
 
+    /**
+     * Generate router logic condition.
+     *
+     * @param string $newPath
+     * @param string $path
+     * @param string $placeholder
+     * @param mixed $data
+     * @param bool $conditionStarted
+     * @return string Router logic condition code
+     */
     protected function createCondition($newPath, $path, $placeholder, $data, &$conditionStarted = false)
     {
-        $code = '';
-
         // Count indexes
         $stLength = strlen($path);
         $length = strlen($placeholder);
