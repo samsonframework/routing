@@ -30,6 +30,23 @@ class Core
     }
 
     /**
+     * Parse route parameters received from ruter logic function.
+     *
+     * @param Route $route Route instance
+     * @param array $receivedParameters Collection of parsed parameters
+     * @return array Collection of route callback needed parameters
+     */
+    protected function parseParameters(Route $route, array $receivedParameters)
+    {
+        // Gather parsed route parameters in correct order
+        $parameters = array();
+        foreach ($route->parameters as $name) {
+            $parameters[] = $receivedParameters[$name];
+        }
+        return $parameters;
+    }
+
+    /**
      * Dispatch HTTP request into callback.
      *
      * @param string $path HTTP request path
@@ -46,22 +63,16 @@ class Core
         // Remove GET parameters
         $path = strtok($path, '?');
 
-        if (function_exists('__router')) {
+        if (function_exists('__router') && ) {
             // Perform routing logic
             if (is_array($routeData = __router($path, $method))) {
                 //elapsed('Found route');
                 /** @var Route $route Retrieve found Route object */
                 $route = $this->routes[$routeData[0]];
 
-                // Gather parsed route parameters in correct order
-                $parameters = array();
-                foreach ($route->parameters as $name) {
-                    $parameters[] = &$routeData[1][$name];
-                }
-
                 // Perform route callback action
                 $result = is_callable($route->callback)
-                    ? call_user_func_array($route->callback, $parameters)
+                    ? call_user_func_array($route->callback, $this->parseParameters($route, $routeData[1]))
                     : false;
             }
 
