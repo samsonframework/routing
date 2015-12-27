@@ -61,7 +61,7 @@ class RouteTest extends \PHPUnit_Framework_TestCase
         $definition = $route->toArrayDefinition('$routeTree');
 
         $expected = '';
-        foreach (Route::$METHODS as $method) {
+        foreach (Route::$httpMethods as $method) {
             $expected .= '$routeTree["'.$method.'"]["user"]["{id:\d}"]["form"]["valid"]= $route->identifier;'."\n";
         }
 

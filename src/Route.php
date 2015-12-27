@@ -25,7 +25,7 @@ class Route
     const ROUTE_KEY = '_0';
 
     /** @var array Collection of all supported HTTP methods */
-    public static $METHODS = array(
+    public static $httpMethods = array(
         self::METHOD_GET,
         self::METHOD_POST,
         self::METHOD_PUT,
@@ -76,7 +76,9 @@ class Route
     {
         // Parse callback signature and get parameters list
         if (is_callable($callback)) {
-            $reflectionMethod = is_array($callback) ? new \ReflectionMethod($callback[0], $callback[1]) : new \ReflectionFunction($callback);
+            $reflectionMethod = is_array($callback)
+                ? new \ReflectionMethod($callback[0], $callback[1])
+                : new \ReflectionFunction($callback);
             foreach ($reflectionMethod->getParameters() as $parameter) {
                 $this->parameters[] = $parameter->getName();
             }
@@ -84,13 +86,11 @@ class Route
     }
 
     /**
-     * Convert route pattern into PHP code array definition for building
-     * route array tree.
+     * Convert current route pattern into array definition string.
      *
-     * @param string $arrayName Generating PHP code array name
-     * @return string Generated multidimensional array definition
+     * @return string Array definition string
      */
-    public function toArrayDefinition($arrayName = '$routeTree')
+    protected function arrayPattern()
     {
         /**
          * Split route pattern into parts clearing empty values and form multi-dimensional
@@ -102,14 +102,26 @@ class Route
         }
 
         // Gather all found array definition parts or use whole pattern as it
-        $arrayDefinition = sizeof($map) ? implode('', $map) : '["' . $this->pattern . '"]';
+        return sizeof($map) ? implode('', $map) : '["' . $this->pattern . '"]';
+    }
+
+    /**
+     * Convert route pattern into PHP code array definition for building
+     * route array tree.
+     *
+     * @param string $arrayName Generating PHP code array name
+     * @return string Generated multidimensional array definition
+     */
+    public function toArrayDefinition($arrayName = '$routeTree')
+    {
+        $arrayDefinition = $this->arrayPattern();
 
         // Build dynamic array-tree structure for specific method
         $code = '';
         if (strpos($this->method, self::METHOD_ANY) === false) {
             $code .= $arrayName.'["' . $this->method . '"]' . $arrayDefinition . '["'.self::ROUTE_KEY.'"]= $route->identifier;'."\n";
         } else {// Build dynamic array-tree structure for all HTTP methods
-            foreach (self::$METHODS as $method) {
+            foreach (self::$httpMethods as $method) {
                 $code .= $arrayName.'["' . $method . '"]' . $arrayDefinition . '["'.self::ROUTE_KEY.'"]= $route->identifier;'."\n";
             }
         }
