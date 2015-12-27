@@ -16,7 +16,7 @@ function globalRouteCallback()
 
 class RouteTest extends \PHPUnit_Framework_TestCase
 {
-    public function routeCallback($paramter, $optionalParameter = '1')
+    public function routeCallback($parameter, $optionalParameter = '1')
     {
         //dummy
     }

@@ -46,11 +46,8 @@ class Core
         // Gather parsed route parameters in correct order
         $parameters = array();
         foreach ($route->parameters as $name) {
-            // Check if needed parameters are passed
-            //if (isset($receivedParameters[$name])) {
-                // Add to parameters collection
-                $parameters[] = $receivedParameters[$name];
-            //}
+            // Add to parameters collection
+            $parameters[] = &$receivedParameters[$name];
         }
         return $parameters;
     }
@@ -64,7 +61,7 @@ class Core
      * @return bool|mixed
      * @throws FailedLogicCreation
      */
-    protected function dispatch($path, $method, &$route = null)
+    public function dispatch($path, $method, &$route = null)
     {
         //elapsed('Started dispatching routes');
         $result = false;
