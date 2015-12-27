@@ -33,7 +33,7 @@ class RouteTest extends \PHPUnit_Framework_TestCase
         $definition = $route->toArrayDefinition('$routeTree');
 
         $this->assertEquals(
-            '$routeTree["GET"]["/"]= $route->identifier;'."\n",
+            '$routeTree["GET"]["/"]["'.Route::ROUTE_KEY.'"]= $route->identifier;'."\n",
             $definition
         );
     }
@@ -50,7 +50,7 @@ class RouteTest extends \PHPUnit_Framework_TestCase
         $definition = $route->toArrayDefinition('$routeTree');
 
         $this->assertEquals(
-            '$routeTree["GET"]["user"]["{id:\d}"]["form"]["valid"]= $route->identifier;'."\n",
+            '$routeTree["GET"]["user"]["{id:\d}"]["form"]["valid"]["'.Route::ROUTE_KEY.'"]= $route->identifier;'."\n",
             $definition
             );
     }
@@ -62,7 +62,7 @@ class RouteTest extends \PHPUnit_Framework_TestCase
 
         $expected = '';
         foreach (Route::$httpMethods as $method) {
-            $expected .= '$routeTree["'.$method.'"]["user"]["{id:\d}"]["form"]["valid"]= $route->identifier;'."\n";
+            $expected .= '$routeTree["'.$method.'"]["user"]["{id:\d}"]["form"]["valid"]["'.Route::ROUTE_KEY.'"]= $route->identifier;'."\n";
         }
 
         $this->assertEquals($expected, $definition);

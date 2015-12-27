@@ -47,10 +47,10 @@ class Core
         $parameters = array();
         foreach ($route->parameters as $name) {
             // Check if needed parameters are passed
-            if (isset($receivedParameters[$name])) {
+            //if (isset($receivedParameters[$name])) {
                 // Add to parameters collection
                 $parameters[] = $receivedParameters[$name];
-            }
+            //}
         }
         return $parameters;
     }
