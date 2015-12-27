@@ -23,9 +23,14 @@ class Core
      * Core constructor.
      *
      * @param RouteCollection $routes Routes collection for dispatching
+     * @throws FailedLogicCreation
      */
     public function __construct(RouteCollection &$routes)
     {
+        if (!function_exists('__router')) {
+            throw new FailedLogicCreation();
+        }
+
         $this->routes = $routes;
     }
 
@@ -63,22 +68,18 @@ class Core
         // Remove GET parameters
         $path = strtok($path, '?');
 
-        if (function_exists('__router')) {
-            // Perform routing logic
-            if (is_array($routeData = __router($path, $method))) {
-                //elapsed('Found route');
-                /** @var Route $route Retrieve found Route object */
-                $route = $this->routes[$routeData[0]];
+        // Perform routing logic
+        if (is_array($routeData = __router($path, $method))) {
+            //elapsed('Found route');
+            /** @var Route $route Retrieve found Route object */
+            $route = $this->routes[$routeData[0]];
 
-                // Perform route callback action
-                $result = is_callable($route->callback)
-                    ? call_user_func_array($route->callback, $this->parseParameters($route, $routeData[1]))
-                    : false;
-            }
-
-            return isset($result) ? $result : true;
-        } else {
-            throw new FailedLogicCreation();
+            // Perform route callback action
+            $result = is_callable($route->callback)
+                ? call_user_func_array($route->callback, $this->parseParameters($route, $routeData[1]))
+                : false;
         }
+
+        return isset($result) ? $result : true;
     }
 }

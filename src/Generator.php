@@ -8,13 +8,18 @@
 namespace samsonframework\routing;
 
 /**
- * Class generates routing logic function
+ * Generates routing logic function.
+ *
  * @package samsonframework\routing
  */
 class Generator
 {
+    /** RegExp for parsing parameters in pattern placeholder */
+    const PARAMETERS_FILTER_PATTERN = '/{(?<name>[^}:]+)(\t*:\t*(?<filter>[^}]+))?}/i';
+
     /**
-     * Generate routing logic function
+     * Generate routing logic function.
+     *
      * @param RouteCollection $routesCollection Routes collection for generating routing logic function
      * @return string PHP code for routing logic
      */
@@ -22,6 +27,7 @@ class Generator
     {
         $routeTree = $this->createRoutesArray($routesCollection);
 
+        // Flag for elseif
         $conditionStarted = false;
 
         /**
@@ -42,6 +48,7 @@ class Generator
 
     /**
      * Convert routes collection into multidimensional array.
+     *
      * @param RouteCollection $routesCollection Routes collection for conversion
      * @return array Multi-dimensional array
      */
@@ -58,6 +65,37 @@ class Generator
         }
 
         return $routeTree;
+    }
+
+    protected function createCondition($newPath, $path, $placeholder, $data, &$conditionStarted = false)
+    {
+        $code = '';
+
+        // Count indexes
+        $stLength = strlen($path);
+        $length = strlen($placeholder);
+
+        // Check if placeholder is a route variable
+        $matches = array();
+        if (preg_match(self::PARAMETERS_FILTER_PATTERN, $placeholder, $matches)) {
+            // Define parameter filter or use generic
+            $filter = isset($matches['filter']) ? $matches['filter'] : '[0-9a-z_]+';
+
+            // Generate parameter route parsing, logic is that parameter can have any length so we
+            // limit it either by closest brace(}) to the right or to the end of the string
+            $code =  ($conditionStarted ? 'else' : '') . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter . ')/i", substr($path, ' . $stLength . ',  strpos($path, "/", ' . $stLength . ') ? strlen($path) - strpos($path, "/", ' . $stLength . ') : strlen($path)), $matches)) {' . "\n";
+        } else { // No parameters in place holder
+            // This is route end - call handler
+            if (sizeof($data) === 1 && isset($data[Route::ROUTE_KEY])) {
+                $code = ($conditionStarted ? 'else' : '') . 'if ($path === "' . $newPath . '") {' . "\n";
+            } else { // Generate route placeholder comparison
+                $code = ($conditionStarted ? 'else' : '') . 'if (substr($path, ' . $stLength . ', ' . $length . ') === "' . $placeholder . '" ) {' . "\n";
+            }
+        }
+
+        $conditionStarted = true;
+
+        return $code;
     }
 
     /**
@@ -80,36 +118,13 @@ class Generator
         // Count left spacing to make code looks better
         $tabs = implode('', array_fill(0, $level, ' '));
         foreach ($dataPointer as $placeholder => $data) {
-            // All routes should be finished with closing slash
-            $newPath = rtrim($path . $placeholder, '/') . '/';
-
-            // Count indexes
-            $stLength = strlen($path);
-            $length = strlen($placeholder);
-
             // Ignore current logic branch in main loop
-            if ($placeholder === Route::ROUTE_KEY) {
-                $foundKey = true;
-                continue;
-            } else {
-                // Check if placeholder is a route variable
-                if (preg_match('/{(?<name>[^}:]+)(\t*:\t*(?<filter>[^}]+))?}/i', $placeholder, $matches)) {
-                    // Define parameter filter or use generic
-                    $filter = isset($matches['filter']) ? $matches['filter'] : '[0-9a-z_]+';
+            if ($placeholder !== Route::ROUTE_KEY) {
+                // All routes should be finished with closing slash
+                $newPath = rtrim($path . $placeholder, '/') . '/';
 
-                    // Generate parameter route parsing, logic is that parameter can have any length so we
-                    // limit it either by closest brace(}) to the right or to the end of the string
-                    $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter . ')/i", substr($path, ' . $stLength . ',  strpos($path, "/", ' . $stLength . ') ? strlen($path) - strpos($path, "/", ' . $stLength . ') : strlen($path)), $matches)) {' . "\n";
-                } else {
-                    // This is route end - call handler
-                    if (sizeof($data) === 1 && isset($data[Route::ROUTE_KEY])) {
-                        $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if ($path === "' . $newPath . '") {' . "\n";
-                    } else { // Generate route placeholder comparison
-                        $code .= $tabs . ($conditionStarted ? 'else' : '') . 'if (substr($path, ' . $stLength . ', ' . $length . ') === "' . $placeholder . '" ) {' . "\n";
-                    }
-                }
-                // Flag that condition group has been started
-                $conditionStarted = true;
+                // Create route logic condition
+                $code .= $tabs . $this->createCondition($newPath, $path, $placeholder, $data, $conditionStarted);
 
                 // This is route end - call handler
                 if (sizeof($data) === 1 && isset($data[Route::ROUTE_KEY])) {
@@ -118,16 +133,18 @@ class Generator
                 } else { // Go deeper in recursion
                     $this->recursiveGenerate($data, $newPath, $code, $level + 5);
                 }
+
+                // Close current route condition group
+                $code .= $tabs . '}' . "\n";
+            } else {
+                $foundKey = true;
             }
-            // Close current route condition group
-            $code .= $tabs . '}' . "\n";
         }
 
         // Always add last condition for parrent branch if needed
         if ($foundKey) {
             $code .= $tabs . 'else {' . "\n";
             $code .= $tabs . '     return array("' . $dataPointer[Route::ROUTE_KEY] . '", $matches);' . "\n";
-            // Close current route condition group
             $code .= $tabs . '}' . "\n";
         }
 
