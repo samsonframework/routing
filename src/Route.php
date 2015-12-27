@@ -8,7 +8,8 @@
 namespace samsonframework\routing;
 
 /**
- * Route
+ * Route.
+ *
  * @package samsonframework\routing
  */
 class Route

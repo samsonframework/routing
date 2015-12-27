@@ -76,9 +76,7 @@ class Core
             $route = $this->routes[$routeData[0]];
 
             // Perform route callback action
-            $result = is_callable($route->callback)
-                ? call_user_func_array($route->callback, $this->parseParameters($route, $routeData[1]))
-                : false;
+            $result = call_user_func_array($route->callback, $this->parseParameters($route, $routeData[1]));
         }
 
         return isset($result) ? $result : true;
