@@ -63,7 +63,7 @@ class Core
         // Remove GET parameters
         $path = strtok($path, '?');
 
-        if (function_exists('__router') && ) {
+        if (function_exists('__router')) {
             // Perform routing logic
             if (is_array($routeData = __router($path, $method))) {
                 //elapsed('Found route');
