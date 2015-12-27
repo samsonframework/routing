@@ -46,7 +46,11 @@ class Core
         // Gather parsed route parameters in correct order
         $parameters = array();
         foreach ($route->parameters as $name) {
-            $parameters[] = $receivedParameters[$name];
+            // Check if needed parameters are passed
+            if (isset($receivedParameters[$name])) {
+                // Add to parameters collection
+                $parameters[] = $receivedParameters[$name];
+            }
         }
         return $parameters;
     }
