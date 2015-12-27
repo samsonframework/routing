@@ -134,7 +134,7 @@ class Generator
                 // Create route logic condition
                 $code .= $tabs . $this->createCondition($newPath, $path, $placeholder, $data, $conditionStarted);
 
-                // This is route end - call handler
+                // This is route end, because nested branch has only one key element
                 if (sizeof($data) === 1 && isset($data[Route::ROUTE_KEY])) {
                     // Finish route parsing
                     $code .= $tabs . '     return array("' . $data[Route::ROUTE_KEY] . '", $matches);' . "\n";
@@ -149,7 +149,7 @@ class Generator
             }
         }
 
-        // Always add last condition for parrent branch if needed
+        // Always add last condition for parent branch if needed
         if ($foundKey) {
             $code .= $tabs . 'else {' . "\n";
             $code .= $tabs . '     return array("' . $dataPointer[Route::ROUTE_KEY] . '", $matches);' . "\n";
