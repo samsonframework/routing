@@ -63,22 +63,18 @@ class Core
      */
     public function dispatch($path, $method, &$route = null)
     {
-        //elapsed('Started dispatching routes');
-        $result = false;
-
         // Remove GET parameters
         $path = strtok($path, '?');
 
         // Perform routing logic
         if (is_array($routeData = __router($path, $method))) {
-            //elapsed('Found route');
             /** @var Route $route Retrieve found Route object */
             $route = $this->routes[$routeData[0]];
 
             // Perform route callback action
-            $result = call_user_func_array($route->callback, $this->parseParameters($route, $routeData[1]));
+            return call_user_func_array($route->callback, $this->parseParameters($route, $routeData[1]));
         }
 
-        return isset($result) ? $result : true;
+        return false;
     }
 }
