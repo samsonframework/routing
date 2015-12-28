@@ -37,6 +37,7 @@ class Generator
          */
         $routerCallerCode = 'function '.$routerFunction.'($path, $method){' . "\n";
         $routerCallerCode .= '$matches = array();' . "\n";
+        $routerCallerCode .= '$parameters = array();' . "\n";
         foreach ($routeTree as $routeMethod => $routes) {
             $routerCallerCode .= ($conditionStarted? 'else' : '').'if ($method === "' . $routeMethod . '") {' . "\n";
             $routerCallerCode .= $this->recursiveGenerate($routeTree[$routeMethod], '/') . "\n";
@@ -76,16 +77,16 @@ class Generator
      * Generate router logic condition.
      *
      * @param string $newPath
-     * @param string $path
      * @param string $placeholder
      * @param mixed $data
      * @param bool $conditionStarted
      * @return string Router logic condition code
      */
-    protected function createCondition($newPath, $path, $placeholder, $data, &$conditionStarted = false)
+    protected function createCondition($newPath, $tabs, $placeholder, $data, &$conditionStarted = false, &$parameterOffset = null)
     {
         // Count indexes
-        $stLength = strlen($path);
+        $stLength = $placeholder !== '/' ? strlen($newPath) : 0;
+        $stLength = !isset($parameterOffset) ? $stLength : $parameterOffset;
         $length = strlen($placeholder);
 
         // Check if placeholder is a route variable
@@ -96,13 +97,27 @@ class Generator
 
             // Generate parameter route parsing, logic is that parameter can have any length so we
             // limit it either by closest brace(}) to the right or to the end of the string
-            $code =  ($conditionStarted ? 'else' : '') . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter . ')/i", substr($path, ' . $stLength . ',  strpos($path, "/", ' . $stLength . ') ? strlen($path) - strpos($path, "/", ' . $stLength . ') : strlen($path)), $matches)) {' . "\n";
+            $code =  $tabs .($conditionStarted ? 'else' : '') . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter . ')/i", substr($path, ' . $stLength . '), $matches)) {'. "\n";
+            //,  strpos($path, "/", ' . $stLength . ') ? strlen($path) - strpos($path, "/", ' . $stLength . ') : strlen($path)), $matches)) {' . "\n";
+
+            // Define parsed parameter value
+            $code .= $tabs . '     $parameters["'.$matches['name'].'"] = $matches["'.$matches['name'].'"];'."\n";
+
+            if (sizeof($data) === 1 && isset($data[Route::ROUTE_KEY])) {
+
+            } else {
+                // As we have parameters and we need to change $path for possible inner conditions
+                $code .= $tabs . '     $path = str_replace($matches["' . $matches['name'] . '"]."/", "", substr($path, ' . $stLength . '));' . "\n";
+                // Set new offset value
+                $parameterOffset = 0;
+            }
+
         } else { // No parameters in place holder
             // This is route end - call handler
             if (sizeof($data) === 1 && isset($data[Route::ROUTE_KEY])) {
-                $code = ($conditionStarted ? 'else' : '') . 'if ($path === "' . $newPath . '") {' . "\n";
+                $code = $tabs . ($conditionStarted ? 'else' : '') . 'if ($path  === "' . $placeholder . '") {' . "\n";
             } else { // Generate route placeholder comparison
-                $code = ($conditionStarted ? 'else' : '') . 'if (substr($path, ' . $stLength . ', ' . $length . ') === "' . $placeholder . '" ) {' . "\n";
+                $code = $tabs . ($conditionStarted ? 'else' : '') . 'if (substr($path, ' . $stLength . ', ' . $length . ') === "' . $placeholder . '") {' . "\n";
             }
         }
 
@@ -121,7 +136,7 @@ class Generator
      * @param int $level Recursion level
      * @return string Router logic function
      */
-    protected function recursiveGenerate(array &$dataPointer, $path, &$code = '', $level = 1)
+    protected function recursiveGenerate(array &$dataPointer, $path, &$code = '', $level = 1, $parameterOffset = null)
     {
         /** @var bool $conditionStarted Flag for creating conditions */
         $conditionStarted = false;
@@ -137,18 +152,21 @@ class Generator
                 $newPath = rtrim($path . $placeholder, '/') . '/';
 
                 // Create route logic condition
-                $code .= $tabs . $this->createCondition($newPath, $path, $placeholder, $data, $conditionStarted);
+                $code .= $this->createCondition($path, $tabs, $placeholder, $data, $conditionStarted, $parameterOffset);
 
                 // This is route end, because nested branch has only one key element
                 if (sizeof($data) === 1 && isset($data[Route::ROUTE_KEY])) {
                     // Finish route parsing
-                    $code .= $tabs . '     return array("' . $data[Route::ROUTE_KEY] . '", $matches);' . "\n";
+                    $code .= $tabs . '     return array("' . $data[Route::ROUTE_KEY] . '", $parameters);' . "\n";
                 } else { // Go deeper in recursion
-                    $this->recursiveGenerate($data, $newPath, $code, $level + 5);
+                    $this->recursiveGenerate($data, $newPath, $code, $level + 5, $parameterOffset);
                 }
 
+                // Clear parameter offset
+                $parameterOffset = null;
+
                 // Close current route condition group
-                $code .= $tabs . '}' . "\n";
+                $code .= $tabs . '}' ."\n";
             } else {
                 $foundKey = true;
             }
@@ -157,7 +175,7 @@ class Generator
         // Always add last condition for parent branch if needed
         if ($foundKey) {
             $code .= $tabs . 'else {' . "\n";
-            $code .= $tabs . '     return array("' . $dataPointer[Route::ROUTE_KEY] . '", $matches);' . "\n";
+            $code .= $tabs . '     return array("' . $dataPointer[Route::ROUTE_KEY] . '", $parameters);' . "\n";
             $code .= $tabs . '}' . "\n";
         }
 

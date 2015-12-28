@@ -37,16 +37,52 @@ class RouteCollection implements \ArrayAccess, \Iterator
         return $newCollection;
     }
 
+    protected function isParameterPlaceholder($placeHolder)
+    {
+        return strpos($placeHolder, '{') !== false;
+    }
+
     /**
-     * Compare two routes deciding who has longer pattern.
+     * Compare two routes deciding who has longer pattern,
+     * but considering route parameters as they make pattern
+     * length variable, so routes with parameters should move
+     * lower beneath routes with fixed values in that place.
      *
      * @param Route $a
      * @param Route $b
-     * @return bool Comparsion result
+     * @return bool Comparison result
      */
     protected function compareRoute(Route $a, Route $b)
     {
-        return !strcmp($a->pattern, $b->pattern);
+        // Get collection of each route placeholders
+        $aPlaceHolders = explode('/', $a->pattern);
+        $bPlaceHolders = explode('/', $b->pattern);
+
+        $aComparableLength = 0;
+        $bComparableLength = 0;
+
+        // Iterate through minimal place holders array
+        for ($i = 0; $i< min(sizeof($aPlaceHolders), sizeof($bPlaceHolders)); $i++) {
+            $isaPlaceHolderParameter = $this->isParameterPlaceholder($aPlaceHolders[$i]);
+            $isbPlaceHolderParameter = $this->isParameterPlaceholder($bPlaceHolders[$i]);
+
+            // If both are parameters - ignore them
+            if ($isaPlaceHolderParameter && $isbPlaceHolderParameter) {
+                continue;
+            } elseif (!$isaPlaceHolderParameter && !$isbPlaceHolderParameter) {
+                // If none of them is parameter count total of placeholders length
+                $aComparableLength += strlen($aPlaceHolders[$i]);
+                $bComparableLength += strlen($bPlaceHolders[$i]);
+            } elseif ($isaPlaceHolderParameter && !$isbPlaceHolderParameter) {
+                // Not parametrized is a winner
+                return 1;
+            } elseif (!$isaPlaceHolderParameter && $isbPlaceHolderParameter) {
+                // Not parametrized is a winner
+                return -1;
+            }
+        }
+
+        return $aComparableLength > $bComparableLength;
     }
 
     /**

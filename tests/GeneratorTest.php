@@ -28,26 +28,32 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         return __FUNCTION__;
     }
 
+    public function userWithIDFormCallback($id)
+    {
+        return array(__FUNCTION__, $id);
+    }
+
+    public function entityWithIDFormCallback($entity, $id)
+    {
+        return __FUNCTION__;
+    }
+
     public function testGeneration()
     {
         $routes = new RouteCollection();
         $routes[] = new Route('/', array($this, 'baseCallback'), 'main-page', Route::METHOD_GET);
         $routes[] = new Route('/{page}', array($this, 'baseWithPageCallback'), 'inner-page', Route::METHOD_GET);
-        $routes[] = new Route('/user/{id}/form', array($this, 'userWithIDCallback'), 'user-by-id', Route::METHOD_GET);
-//
-//        $routes[] = new Route('/user/', array($this, 'routeCallback'));
-//        $routes[] = new Route('/user/{id:0-9}', array($this, 'routeCallback'));
-//        $routes[] = new Route('/user/{id:0-9}/edit', array($this, 'routeCallback'));
-//        $routes[] = new Route('/user/{id:0-9}/save', array($this, 'routeCallback'));
-//        $routes[] = new Route('/user/{id:0-9}/remove', array($this, 'routeCallback'));
-//        $routes[] = new Route('/user/{page:0-9}/{filter}', array($this, 'routeCallback'));
+        $routes[] = new Route('/user/{id}', array($this, 'userWithIDCallback'), 'user-by-id', Route::METHOD_GET);
+        $routes[] = new Route('/user/{id}/form', array($this, 'userWithIDFormCallback'), 'user-by-id-form', Route::METHOD_GET);
+        $routes[] = new Route('/{entity:[a-z]+}/{id}/form', array($this, 'entityWithIDFormCallback'), 'entity-by-id-form', Route::METHOD_GET);
 
         $generator = new Generator();
         $routerLogicFunction = '__router'.rand(0, 1000);
         $routerLogic = $generator->generate($routes, $routerLogicFunction);
 
-        eval($routerLogic);
-        echo $routerLogic;
+        // Create real file for debugging
+        file_put_contents(__DIR__.'/testLogic.php', '<?php '."\n".$routerLogic);
+        require(__DIR__.'/testLogic.php');
 
         $result = $routerLogicFunction('/', Route::METHOD_GET);
         $this->assertEquals('main-page', $result[0]);
@@ -57,12 +63,23 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
 
         $result = $routerLogicFunction('/123', Route::METHOD_GET);
         $this->assertEquals('inner-page', $result[0]);
+        $this->assertArrayHasKey('page', $result[1]);
 
         // BUG! We need to fix pattern matching with parameters
         $result = $routerLogicFunction('/123/23123', Route::METHOD_GET);
         $this->assertEquals('inner-page', $result[0]);
 
-        $result = $routerLogicFunction('/user/123/form', Route::METHOD_GET);
+        $result = $routerLogicFunction('/user/123', Route::METHOD_GET);
         $this->assertEquals('user-by-id', $result[0]);
+        $this->assertArrayHasKey('id', $result[1]);
+
+        $result = $routerLogicFunction('/user/123/form', Route::METHOD_GET);
+        $this->assertEquals('user-by-id-form', $result[0]);
+        $this->assertArrayHasKey('id', $result[1]);
+
+        $result = $routerLogicFunction('/friend/123/form', Route::METHOD_GET);
+        $this->assertEquals('entity-by-id-form', $result[0]);
+        $this->assertArrayHasKey('entity', $result[1]);
+        $this->assertArrayHasKey('id', $result[1]);
     }
 }
