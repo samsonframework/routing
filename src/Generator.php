@@ -89,23 +89,24 @@ class Generator
         $stLength = !isset($parameterOffset) ? $stLength : $parameterOffset;
         $length = strlen($placeholder);
 
+        // Flag showing if this is a last condition in logic tree branch
+        $lastCondition = sizeof($data) === 1 && isset($data[Route::ROUTE_KEY]);
+
         // Check if placeholder is a route variable
         $matches = array();
         if (preg_match(self::PARAMETERS_FILTER_PATTERN, $placeholder, $matches)) {
             // Define parameter filter or use generic
-            $filter = isset($matches['filter']) ? $matches['filter'] : '[0-9a-z_]+';
+            $filter = isset($matches['filter']) ? $matches['filter'] : '[^\/]+';
 
             // Generate parameter route parsing, logic is that parameter can have any length so we
             // limit it either by closest brace(}) to the right or to the end of the string
-            $code =  $tabs .($conditionStarted ? 'else' : '') . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter . ')/i", substr($path, ' . $stLength . '), $matches)) {'. "\n";
+            $code =  $tabs .($conditionStarted ? 'else' : '') . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter . ($lastCondition?'$':'').')/i", substr($path, ' . $stLength . '), $matches)) {'. "\n";
             //,  strpos($path, "/", ' . $stLength . ') ? strlen($path) - strpos($path, "/", ' . $stLength . ') : strlen($path)), $matches)) {' . "\n";
 
             // Define parsed parameter value
             $code .= $tabs . '     $parameters["'.$matches['name'].'"] = $matches["'.$matches['name'].'"];'."\n";
 
-            if (sizeof($data) === 1 && isset($data[Route::ROUTE_KEY])) {
-
-            } else {
+            if (!$lastCondition) {
                 // As we have parameters and we need to change $path for possible inner conditions
                 $code .= $tabs . '     $path = str_replace($matches["' . $matches['name'] . '"]."/", "", substr($path, ' . $stLength . '));' . "\n";
                 // Set new offset value
@@ -114,7 +115,7 @@ class Generator
 
         } else { // No parameters in place holder
             // This is route end - call handler
-            if (sizeof($data) === 1 && isset($data[Route::ROUTE_KEY])) {
+            if ($lastCondition) {
                 $code = $tabs . ($conditionStarted ? 'else' : '') . 'if ($path  === "' . $placeholder . '") {' . "\n";
             } else { // Generate route placeholder comparison
                 $code = $tabs . ($conditionStarted ? 'else' : '') . 'if (substr($path, ' . $stLength . ', ' . $length . ') === "' . $placeholder . '") {' . "\n";
