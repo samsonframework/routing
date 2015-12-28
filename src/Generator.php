@@ -114,7 +114,7 @@ class Generator
                 // Check if nothing left in path as we reached logic end
                 $code .= $tabs . '     if (strlen($path) !== 0) { return null; }'."\n";
             } else {
-                // Set new offset value
+                // Set new offset value for path as we now removed dynamic parameter from it
                 $parameterOffset = 0;
             }
 
