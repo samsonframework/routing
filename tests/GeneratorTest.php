@@ -46,6 +46,8 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $routes[] = new Route('/user/{id}', array($this, 'userWithIDCallback'), 'user-by-id', Route::METHOD_GET);
         $routes[] = new Route('/user/{id}/form', array($this, 'userWithIDFormCallback'), 'user-by-id-form', Route::METHOD_GET);
         $routes[] = new Route('/{entity:[a-z]+}/{id}/form', array($this, 'entityWithIDFormCallback'), 'entity-by-id-form', Route::METHOD_GET);
+        $routes[] = new Route('/{id}/test/{page:\d+}', array($this, 'entityWithIDFormCallback'), 'entity-by-id-form-test', Route::METHOD_GET);
+
 
         $generator = new Generator();
         $routerLogicFunction = '__router'.rand(0, 1000);
@@ -80,5 +82,10 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('entity-by-id-form', $result[0]);
         $this->assertArrayHasKey('entity', $result[1]);
         $this->assertArrayHasKey('id', $result[1]);
+
+        $result = $routerLogicFunction('/123/test/1', Route::METHOD_GET);
+        $this->assertEquals('entity-by-id-form-test', $result[0]);
+        $this->assertArrayHasKey('id', $result[1]);
+        $this->assertArrayHasKey('page', $result[1]);
     }
 }
