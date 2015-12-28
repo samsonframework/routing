@@ -21,9 +21,10 @@ class Generator
      * Generate routing logic function.
      *
      * @param RouteCollection $routesCollection Routes collection for generating routing logic function
+     * @param string $routerFunction Router logic function name
      * @return string PHP code for routing logic
      */
-    public function generate(RouteCollection &$routesCollection)
+    public function generate(RouteCollection &$routesCollection, $routerFunction = '__router')
     {
         $routeTree = $this->createRoutesArray($routesCollection);
 
@@ -34,7 +35,7 @@ class Generator
          * Iterate found route types and create appropriate router logic function
          * for each route type/method key using specific $routeTree branch
          */
-        $routerCallerCode = 'function __router($path, $method){' . "\n";
+        $routerCallerCode = 'function '.$routerFunction.'($path, $method){' . "\n";
         $routerCallerCode .= '$matches = array();' . "\n";
         foreach ($routeTree as $routeMethod => $routes) {
             $routerCallerCode .= ($conditionStarted? 'else' : '').'if ($method === "' . $routeMethod . '") {' . "\n";

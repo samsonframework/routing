@@ -112,7 +112,14 @@ class RouteCollection implements \ArrayAccess, \Iterator
      */
     public function offsetSet($offset, $value)
     {
-        $this->routes[$offset] = $value;
+        // If offset is passed, meaning $routes['routename'] = ....
+        if (isset($offset)) {
+            // Change route identifier to passed
+            $value->identifier = $offset;
+        }
+
+        // Add Route to collection
+        $this->add($value);
     }
 
     /**

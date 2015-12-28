@@ -65,16 +65,26 @@ class RouteCollectionTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($identifier, $collection->key());
 
+        // Test route collection looping
         foreach ($collection as $route) {
             $this->assertEquals($identifier, $route->identifier);
         }
 
+        // Testing working with route collection as array
         $route = new Route('/user/{id:\d}/form/valid', array($this, 'routeCallback'));
         $collection['TestRoute'] = $route;
         $this->assertArrayHasKey('TestRoute', $collection);
 
+        // Testing overloading route identifier
+        $routeWithoutId = new Route('/{id:\d}/form/valid', array($this, 'routeCallback'), 'OriginalID');
+        $collection['ChangedOriginalID'] = $routeWithoutId;
+        $this->assertArrayHasKey('ChangedOriginalID', $collection);
+        $this->assertArrayNotHasKey('OriginalID', $collection);
+
+        // Test passed route object
         $this->assertEquals($route, $collection['TestRoute']);
 
+        // Test removing routes
         unset($collection[$identifier]);
         $this->assertEquals(false, isset($collection[$identifier]));
 
