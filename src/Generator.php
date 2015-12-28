@@ -106,9 +106,14 @@ class Generator
             // Define parsed parameter value
             $code .= $tabs . '     $parameters["'.$matches['name'].'"] = $matches["'.$matches['name'].'"];'."\n";
 
-            if (!$lastCondition) {
-                // As we have parameters and we need to change $path for possible inner conditions
-                $code .= $tabs . '     $path = str_replace($matches["' . $matches['name'] . '"]."/", "", substr($path, ' . $stLength . '));' . "\n";
+            // As we have parameters and we need to change $path for possible inner conditions
+            $code .= $tabs . '     $path = str_replace($matches["' . $matches['name'] . '"]'.($lastCondition?'':'."/"').', "", substr($path, ' . $stLength . '));' . "\n";
+
+            // Check last condition for routes ending with parameters
+            if ($lastCondition) {
+                // Check if nothing left in path as we reached logic end
+                $code .= $tabs . '     if (strlen($path) !== 0) { return null; }'."\n";
+            } else {
                 // Set new offset value
                 $parameterOffset = 0;
             }
