@@ -9,5 +9,7 @@
 /** Dummy router logic function */
 function __router($path, $method)
 {
-    return array('MyRoute', array('id' => '123'));
+    if (strpos($path, '/user/') !== false) {
+        return array('MyRoute', array('id' => '123'));
+    }
 }

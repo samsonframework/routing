@@ -18,6 +18,11 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         return true;
     }
 
+    public function routeFailedCallback($parameter, $optionalParameter = '1')
+    {
+        return false;
+    }
+
     public function testMissingRouterLogic()
     {
         $this->setExpectedException('\samsonframework\routing\exception\FailedLogicCreation');
@@ -44,5 +49,20 @@ class CoreTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(true, $dispatchingResult);
         $this->assertEquals($identifier, $route->identifier);
+    }
+
+    public function testFailedRouting()
+    {
+        $core = new Core(new RouteCollection());
+
+        /** @var Route $route */
+        $route = null;
+        $dispatchingResult = $core->dispatch(
+            '/nouser/123/form/valid',
+            Route::METHOD_GET,
+            $route
+        );
+
+        $this->assertEquals(false, $dispatchingResult);
     }
 }
