@@ -58,34 +58,22 @@ class RouteCollection implements \ArrayAccess, \Iterator
         $aPlaceHolders = explode('/', $a->pattern);
         $bPlaceHolders = explode('/', $b->pattern);
 
-        $aComparableLength = 0;
-        $bComparableLength = 0;
-
         // Iterate through minimal place holders array
         for ($i = 0; $i< max(sizeof($aPlaceHolders), sizeof($bPlaceHolders)); $i++) {
-            $aValue = isset($aPlaceHolders[$i]) ? $aPlaceHolders[$i] : '';
-            $bValue = isset($bPlaceHolders[$i]) ? $bPlaceHolders[$i] : '';
+            $aValue = isset($aPlaceHolders[$i]) ? $aPlaceHolders[$i] : '{}';
+            $bValue = isset($bPlaceHolders[$i]) ? $bPlaceHolders[$i] : '{}';
 
-            $isaPlaceHolderParameter = $this->isParameterPlaceholder($aValue);
-            $isbPlaceHolderParameter = $this->isParameterPlaceholder($bValue);
+            $aHasParameter = $this->isParameterPlaceholder($aValue);
+            $bHasParameter = $this->isParameterPlaceholder($bValue);
 
-            // If both are parameters - ignore them
-            if ($isaPlaceHolderParameter && $isbPlaceHolderParameter) {
-                continue;
-            } elseif (!$isaPlaceHolderParameter && !$isbPlaceHolderParameter) {
-                // If none of them is parameter count total of placeholders length
-                $aComparableLength += strlen($aValue);
-                $bComparableLength += strlen($bValue);
-            } elseif ($isaPlaceHolderParameter && !$isbPlaceHolderParameter) {
-                // Not parametrized is a winner
+            if ($aHasParameter && !$bHasParameter) {
                 return 1;
-            } elseif (!$isaPlaceHolderParameter && $isbPlaceHolderParameter) {
-                // Not parametrized is a winner
+            } elseif (!$aHasParameter && $bHasParameter) {
                 return -1;
             }
         }
 
-        return $aComparableLength > $bComparableLength;
+        return sizeof($aPlaceHolders) < sizeof($bPlaceHolders);
     }
 
     /**

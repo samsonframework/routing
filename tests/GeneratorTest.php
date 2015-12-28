@@ -45,9 +45,10 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $routes[] = new Route('/{page}', array($this, 'baseWithPageCallback'), 'inner-page', Route::METHOD_GET);
         $routes[] = new Route('/user/{id}', array($this, 'userWithIDCallback'), 'user-by-id', Route::METHOD_GET);
         $routes[] = new Route('/user/{id}/form', array($this, 'userWithIDFormCallback'), 'user-by-id-form', Route::METHOD_GET);
-        $routes[] = new Route('/{entity:[a-z]+}/{id}/form', array($this, 'entityWithIDFormCallback'), 'entity-by-id-form', Route::METHOD_GET);
+        $routes[] = new Route('/{entity}/{id}/form', array($this, 'entityWithIDFormCallback'), 'entity-by-id-form', Route::METHOD_GET);
         $routes[] = new Route('/{id}/test/{page:\d+}', array($this, 'entityWithIDFormCallback'), 'entity-by-id-form-test', Route::METHOD_GET);
-
+        $routes[] = new Route('/{id}/{page:\d+}', array($this, 'entityWithIDFormCallback'), 'two-params-matching', Route::METHOD_GET);
+        $routes[] = new Route('/{num}/{page:\d+}', array($this, 'entityWithIDFormCallback'), 'two-params', Route::METHOD_GET);
 
         $generator = new Generator();
         $routerLogicFunction = '__router'.rand(0, 1000);
