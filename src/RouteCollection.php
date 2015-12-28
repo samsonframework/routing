@@ -38,6 +38,26 @@ class RouteCollection implements \ArrayAccess, \Iterator
     }
 
     /**
+     * Compare two routes deciding who has longer pattern.
+     *
+     * @param Route $a
+     * @param Route $b
+     * @return bool Comparsion result
+     */
+    protected function compareRoute(Route $a, Route $b)
+    {
+        return !strcmp($a->pattern, $b->pattern);
+    }
+
+    /**
+     * Sort routes collection in order route pattern length descending.
+     */
+    public function sort()
+    {
+        usort($this->routes, array($this, 'compareRoute'));
+    }
+
+    /**
      * Add route.
      *
      * @param Route $route Route instance for addition

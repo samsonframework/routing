@@ -47,6 +47,8 @@ class Generator
         return $routerCallerCode . '}';
     }
 
+
+
     /**
      * Convert routes collection into multidimensional array.
      *
@@ -57,6 +59,8 @@ class Generator
     {
         // Create array variable
         $routeTree = array();
+
+        $routesCollection->sort();
 
         // Build multi-dimensional route array-tree
         foreach ($routesCollection as $route) {
