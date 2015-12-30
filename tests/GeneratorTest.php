@@ -69,7 +69,7 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayHasKey('page', $result[1]);
 
         $result = $routerLogicFunction('/123/23123', Route::METHOD_GET);
-        $this->assertEquals(null, $result[0]);
+        $this->assertEquals('two-params', $result[0]);
 
         $result = $routerLogicFunction('/user/123', Route::METHOD_GET);
         $this->assertEquals('user-by-id', $result[0]);

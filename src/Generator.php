@@ -38,6 +38,7 @@ class Generator
         $routerCallerCode = 'function '.$routerFunction.'($path, $method){' . "\n";
         $routerCallerCode .= '$matches = array();' . "\n";
         $routerCallerCode .= '$parameters = array();' . "\n";
+        $routerCallerCode .= '$originalPath = $path;' . "\n";
         foreach ($routeTree as $routeMethod => $routes) {
             $routerCallerCode .= ($conditionStarted? 'else' : '').'if ($method === "' . $routeMethod . '") {' . "\n";
             $routerCallerCode .= $this->recursiveGenerate($routeTree[$routeMethod], '/') . "\n";
@@ -82,8 +83,10 @@ class Generator
      * @param bool $conditionStarted
      * @return string Router logic condition code
      */
-    protected function createCondition($newPath, $tabs, $placeholder, $data, &$conditionStarted = false, &$parameterOffset = null)
+    protected function createCondition($newPath, $tabs, $placeholder, $data, &$conditionStarted = false, &$parameterOffset = null, $level = 1)
     {
+        $code = '';
+
         // Count indexes
         $stLength = $placeholder !== '/' ? strlen($newPath) : 0;
         $stLength = !isset($parameterOffset) ? $stLength : $parameterOffset;
@@ -92,31 +95,45 @@ class Generator
         // Flag showing if this is a last condition in logic tree branch
         $lastCondition = sizeof($data) === 1 && isset($data[Route::ROUTE_KEY]);
 
+        // Function call for getting current path in router logic
+        $currentString = 'substr($path, ' . $stLength . ')';
+
         // Check if placeholder is a route variable
         $matches = array();
         if (preg_match(self::PARAMETERS_FILTER_PATTERN, $placeholder, $matches)) {
             // Define parameter filter or use generic
             $filter = isset($matches['filter']) ? $matches['filter'] : '[^\/]+';
 
+            // If we have returned to top level - restore path
+            if ($level === 1) {
+                // Restore path before top level parameter parsing
+                $code .= '$path = $originalPath;'."\n";
+            }
+
             // Generate parameter route parsing, logic is that parameter can have any length so we
             // limit it either by closest brace(}) to the right or to the end of the string
-            $code =  $tabs .($conditionStarted ? 'else' : '') . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter . ($lastCondition?'$':'').')/i", substr($path, ' . $stLength . '), $matches)) {'. "\n";
+            $code .=  $tabs . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter .')/i", '.$currentString.', $matches)) {'. "\n";
             //,  strpos($path, "/", ' . $stLength . ') ? strlen($path) - strpos($path, "/", ' . $stLength . ') : strlen($path)), $matches)) {' . "\n";
 
             // Define parsed parameter value
             $code .= $tabs . '     $parameters["'.$matches['name'].'"] = $matches["'.$matches['name'].'"];'."\n";
 
             // As we have parameters and we need to change $path for possible inner conditions
-            $code .= $tabs . '     $path = str_replace($matches["' . $matches['name'] . '"]'.($lastCondition?'':'."/"').', "", substr($path, ' . $stLength . '));' . "\n";
+            //$code .= $tabs . '     $path = str_replace($matches["' . $matches['name'] . '"], "", substr($path, ' . $stLength . '));' . "\n";
+            $code .= $tabs . '     $path = substr($path, '.$stLength.' + strlen($matches["' . $matches['name'] . '"]) + 1);' . "\n";
 
             // Check last condition for routes ending with parameters
             if ($lastCondition) {
-                // Check if nothing left in path as we reached logic end
-                $code .= $tabs . '     if (strlen($path) !== 0) { return null; }'."\n";
+                // Check if nothing left in path as we reached logic end and route should end on this
+                // branch as nothing should be more
+                $code .= $tabs . '     if (strlen($path) !== 0 || $path !== false) { return null; }'."\n";
             } else {
                 // Set new offset value for path as we now removed dynamic parameter from it
                 $parameterOffset = 0;
             }
+
+            // End condition upon parameters
+            $conditionStarted = false;
 
         } else { // No parameters in place holder
             // This is route end - call handler
@@ -124,10 +141,13 @@ class Generator
                 $code = $tabs . ($conditionStarted ? 'else' : '') . 'if ($path  === "' . $placeholder . '") {' . "\n";
             } else { // Generate route placeholder comparison
                 $code = $tabs . ($conditionStarted ? 'else' : '') . 'if (substr($path, ' . $stLength . ', ' . $length . ') === "' . $placeholder . '") {' . "\n";
+                $code .= $tabs . '     $path = substr($path, ' . ($stLength+$length+1) . ');'."\n";
+                // Set new offset value for path as we now removed dynamic parameter from it
+                $parameterOffset = 0;
             }
-        }
 
-        $conditionStarted = true;
+            $conditionStarted = true;
+        }
 
         return $code;
     }
@@ -158,7 +178,7 @@ class Generator
                 $newPath = rtrim($path . $placeholder, '/') . '/';
 
                 // Create route logic condition
-                $code .= $this->createCondition($path, $tabs, $placeholder, $data, $conditionStarted, $parameterOffset);
+                $code .= $this->createCondition($path, $tabs, $placeholder, $data, $conditionStarted, $parameterOffset, $level);
 
                 // This is route end, because nested branch has only one key element
                 if (sizeof($data) === 1 && isset($data[Route::ROUTE_KEY])) {
@@ -170,7 +190,6 @@ class Generator
 
                 // Clear parameter offset
                 $parameterOffset = null;
-
                 // Close current route condition group
                 $code .= $tabs . '}' ."\n";
             } else {
