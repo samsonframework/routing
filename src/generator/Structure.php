@@ -43,17 +43,21 @@ class Structure
 
             // We should count "/" route here
             $routeParts = $route->pattern == '/' ? array('/')
-                : array_filter(explode(Route::DELIMITER, $route->pattern));
+                : array_values(array_filter(explode(Route::DELIMITER, $route->pattern)));
 
             // Split route pattern into parts by its delimiter
-            foreach ($routeParts as $routePart) {
+            for ($i = 0, $size = sizeof($routeParts); $i < $size; $i++) {
+                $routePart = $routeParts[$i];
                 // Try to find matching branch by its part
                 $tempBranch = $currentBranch->find($routePart);
+
+                // Define if this is last part so this branch should match route
+                $matchedRoute = $i == $size - 1 ? $route->identifier : '';
 
                 // We have not found this branch
                 if (null === $tempBranch) {
                     // Create new inner branch and store pointer to it
-                    $currentBranch = $currentBranch->add($routePart, $route->identifier);
+                    $currentBranch = $currentBranch->add($routePart, $matchedRoute);
                 } else { // Store pointer to found branch
                     $currentBranch = $tempBranch;
                 }
@@ -102,24 +106,24 @@ class Structure
         }
 
         /** @var Branch $branch */
-        $branch = array_shift($branches);
+        $firstBranch = array_shift($branches);
         // As this is first sub-branch always create if condition
-        $this->generator->defIfCondition($branch->toLogicConditionCode($currentString));
+        $this->generator->defIfCondition($firstBranch->toLogicConditionCode($currentString));
 
         // Store parameter to collection
-        if ($branch->isParametrized()) {
+        if ($firstBranch->isParametrized()) {
             $this->generator
-                ->newLine('$parameters[\''.$branch->node->name.'\'] = $matches[\''.$branch->node->name.'\'];');
+                ->newLine('$parameters[\''.$firstBranch->node->name.'\'] = $matches[\''.$firstBranch->node->name.'\'];');
         }
 
-        if (sizeof($branch->branches)) {
+        if (sizeof($firstBranch->branches)) {
             // Substract part of path
-            $this->generator->newLine('$path = '.$branch->removeMatchedPathCode($currentString));
+            $this->generator->newLine('$path = '.$firstBranch->removeMatchedPathCode($currentString));
             // Generate conditions for this branch
-            $this->innerGenerate($branch->branches, $currentString, $branch);
+            $this->innerGenerate($firstBranch->branches, $currentString, $firstBranch);
         } else {
             // Close first condition
-            $this->generator->newLine('return array(\'' . $branch->identifier . '\', $parameters);');
+            $this->generator->newLine('return array(\'' . $firstBranch->identifier . '\', $parameters);');
         }
 
         // Iterate all branches starting from second and not touching last one
@@ -144,8 +148,7 @@ class Structure
                     // Start new parametrized condition as we cannot continue with param
                     ->defElseIfCondition($branch->toLogicConditionCode($currentString))
                     // Store parameter to collection
-                    ->newLine('$parameters[\''.$branch->node->name.'\'] = $matches[\''.$branch->node->name.'\'];')
-                    ;
+                    ->newLine('$parameters[\'' . $branch->node->name . '\'] = $matches[\'' . $branch->node->name . '\'];');
             } else { // Continue condition branching
                 $this->generator
                     ->defElseIfCondition($branch->toLogicConditionCode($currentString))
@@ -161,6 +164,11 @@ class Structure
                 // Close current condition
                 $this->generator->newLine('return array(\'' . $branch->identifier . '\', $parameters);');
             }
+        }
+
+        if (isset($parent) && isset($parent->identifier{0})) {
+            // Close current condition
+            $this->generator->defElseCondition()->newLine('return array(\'' . $parent->identifier . '\', $parameters);');
         }
 
         // Close condition
