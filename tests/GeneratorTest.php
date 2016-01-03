@@ -43,6 +43,7 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $routes = new RouteCollection();
         $routes[] = new Route('/', array($this, 'baseCallback'), 'main-page', Route::METHOD_GET);
         $routes[] = new Route('/{page}', array($this, 'baseWithPageCallback'), 'inner-page', Route::METHOD_GET);
+        $routes['user-home'] = new Route('/user/', array($this, 'baseCallback'));
         $routes[] = new Route('/user/{id}', array($this, 'userWithIDCallback'), 'user-by-id', Route::METHOD_GET);
         $routes[] = new Route('/user/{id}/form', array($this, 'userWithIDFormCallback'), 'user-by-id-form', Route::METHOD_GET);
         $routes[] = new Route('/{entity}/{id}/form', array($this, 'entityWithIDFormCallback'), 'entity-by-id-form', Route::METHOD_GET);
@@ -88,5 +89,8 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('entity-by-id-form-test', $result[0]);
         $this->assertArrayHasKey('id', $result[1]);
         $this->assertArrayHasKey('page', $result[1]);
+
+        $result = $routerLogicFunction('/user/', Route::METHOD_GET);
+        $this->assertEquals('user-home', $result[0]);
     }
 }

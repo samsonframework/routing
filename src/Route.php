@@ -57,7 +57,7 @@ class Route
      * @param string|null $identifier Route unique identifier, if empty - unique will be generated
      * @param string $method HTTP request method
      */
-    public function __construct($pattern, $callback, $identifier = null, $method = self::METHOD_ANY)
+    public function __construct($pattern, $callback, $identifier = null, $method = self::METHOD_GET)
     {
         $this->pattern = $pattern;
         $this->callback = $callback;

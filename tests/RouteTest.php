@@ -57,7 +57,7 @@ class RouteTest extends \PHPUnit_Framework_TestCase
 
     public function testAnyToArrayDefinition()
     {
-        $route = new Route('/user/{id:\d}/form/valid', array($this, 'routeCallback'));
+        $route = new Route('/user/{id:\d}/form/valid', array($this, 'routeCallback'), 'testRoute', Route::METHOD_ANY);
         $definition = $route->toArrayDefinition('$routeTree');
 
         $expected = '';
