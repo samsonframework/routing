@@ -14,9 +14,6 @@ namespace samsonframework\routing;
  */
 class Generator
 {
-    /** RegExp for parsing parameters in pattern placeholder */
-    const PARAMETERS_FILTER_PATTERN = '/{(?<name>[^}:]+)(\t*:\t*(?<filter>[^}]+))?}/i';
-
     /**
      * Generate routing logic function.
      *
@@ -87,8 +84,9 @@ class Generator
     {
         $code = '';
 
-        // Count indexes
+        // This limit condition for first iteration - needs to be fixed
         $stLength = $placeholder !== '/' ? strlen($newPath) : 0;
+        // If we have cut $path on previous iteration
         $stLength = !isset($parameterOffset) ? $stLength : $parameterOffset;
         $length = strlen($placeholder);
 
@@ -96,11 +94,11 @@ class Generator
         $lastCondition = sizeof($data) === 1 && isset($data[Route::ROUTE_KEY]);
 
         // Function call for getting current path in router logic
-        $currentString = 'substr($path, ' . $stLength . ')';
+        $currentString = $stLength > 0 ? 'substr($path, ' . $stLength . ')' : '$path';
 
         // Check if placeholder is a route variable
         $matches = array();
-        if (preg_match(self::PARAMETERS_FILTER_PATTERN, $placeholder, $matches)) {
+        if (preg_match(Route::PARAMETERS_FILTER_PATTERN, $placeholder, $matches)) {
             // Define parameter filter or use generic
             $filter = isset($matches['filter']) ? $matches['filter'] : '[^\/]+';
 
@@ -112,14 +110,12 @@ class Generator
 
             // Generate parameter route parsing, logic is that parameter can have any length so we
             // limit it either by closest brace(}) to the right or to the end of the string
-            $code .=  $tabs . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter .')/i", '.$currentString.', $matches)) {'. "\n";
-            //,  strpos($path, "/", ' . $stLength . ') ? strlen($path) - strpos($path, "/", ' . $stLength . ') : strlen($path)), $matches)) {' . "\n";
+            $code .= $tabs . 'if (preg_match("/(?<' . $matches['name'] . '>' . $filter .')/i", '.$currentString.', $matches)) {'. "\n";
 
             // Define parsed parameter value
             $code .= $tabs . '     $parameters["'.$matches['name'].'"] = $matches["'.$matches['name'].'"];'."\n";
 
             // As we have parameters and we need to change $path for possible inner conditions
-            //$code .= $tabs . '     $path = str_replace($matches["' . $matches['name'] . '"], "", substr($path, ' . $stLength . '));' . "\n";
             $code .= $tabs . '     $path = substr($path, '.$stLength.' + strlen($matches["' . $matches['name'] . '"]) + 1);' . "\n";
 
             // Check last condition for routes ending with parameters

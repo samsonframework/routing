@@ -34,6 +34,9 @@ class Route
         self::METHOD_UPDATE
     );
 
+    /** RegExp for parsing parameters in pattern placeholder */
+    const PARAMETERS_FILTER_PATTERN = '/{(?<name>[^}:]+)(\t*:\t*(?<filter>[^}]+))?}/i';
+
     /** @var string Route identifier */
     public $identifier;
 

@@ -60,16 +60,49 @@ class RouteCollection implements \ArrayAccess, \Iterator
 
         // Iterate through minimal place holders array
         for ($i = 0; $i< max(sizeof($aPlaceHolders), sizeof($bPlaceHolders)); $i++) {
+            // If route does not have this placeholder consider it as lowest priority - parameter
             $aValue = isset($aPlaceHolders[$i]) ? $aPlaceHolders[$i] : '{}';
             $bValue = isset($bPlaceHolders[$i]) ? $bPlaceHolders[$i] : '{}';
 
+            // Define which of routes placeholder is parameter
             $aHasParameter = $this->isParameterPlaceholder($aValue);
             $bHasParameter = $this->isParameterPlaceholder($bValue);
 
+            // Stop comparison on first parameters difference in placeholders
             if ($aHasParameter && !$bHasParameter) {
-                return 1;
+                return 1; // bRoute placeholder has no parameter
             } elseif (!$aHasParameter && $bHasParameter) {
-                return -1;
+                return -1; // aRoute placeholder has no parameter
+            } elseif ($aHasParameter && $bHasParameter) {
+//                // If we have two parameters, we need to compare their filters
+//                $aName = '';
+//                $aFilter = '';
+//                $bName = '';
+//                $bFilter = '';
+//                $matches = array();
+//                // Parse each of them
+//                if (preg_match(Route::PARAMETERS_FILTER_PATTERN, $aValue, $matches)) {
+//                    $aName = $matches['name'];
+//                    $aFilter = &$matches['filter'];
+//                }
+//                // Parse each of them
+//                if (preg_match(Route::PARAMETERS_FILTER_PATTERN, $bValue, $matches)) {
+//                    $bName = $matches['name'];
+//                    $bFilter = &$matches['filter'];
+//                }
+//
+//                // If we have two normal parameters, not bulks
+//                if (isset($aName{1}) && isset($bName{1})) {
+//                    $aFilterMatch = preg_match('/'.$aFilter.'/', '123abc');
+//                    $bFilterMatch = preg_match('/'.$bFilter.'/', '123abc');
+//
+//                    if ($aFilterMatch && !$bFilterMatch) {
+//                        return 1;
+//                    } elseif (!$aFilterMatch && $bFilterMatch) {
+//                        return -1;
+//                    }
+//
+//                }
             }
         }
 

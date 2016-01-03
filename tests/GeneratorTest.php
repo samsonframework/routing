@@ -43,10 +43,11 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $routes = new RouteCollection();
         $routes['main-page'] = new Route('/', array($this, 'baseCallback'));
         $routes['inner-page'] = new Route('/{page}', array($this, 'baseWithPageCallback'));
-        // This one would be overriden by next route due to automatic slash addition to the end of the route
+        // This one would be overridden by next route due to automatic slash addition to the end of the route
         $routes['user-home'] = new Route('/user/', array($this, 'baseCallback'));
         $routes['user-home-without-slash'] = new Route('/user', array($this, 'baseCallback'));
         $routes['user-by-id'] = new Route('/user/{id}', array($this, 'userWithIDCallback'));
+        $routes['user-by-gender-age'] = new Route('/user/{gender:(male|female)}/{age}', array($this, 'userWithIDCallback'));
         $routes['user-by-id-form'] = new Route('/user/{id}/form', array($this, 'userWithIDFormCallback'));
         $routes['user-by-id-friends'] = new Route('/user/{id}/friends', array($this, 'userWithIDFormCallback'));
         $routes['user-by-id-friends-with-id'] = new Route('/user/{id}/friends/{groupid}', array($this, 'userWithIDFormCallback'));
@@ -87,6 +88,11 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $result = $routerLogicFunction('/user/123/friends', Route::METHOD_GET);
         $this->assertEquals('user-by-id-friends', $result[0]);
         $this->assertArrayHasKey('id', $result[1]);
+
+//        $result = $routerLogicFunction('/user/male/18', Route::METHOD_GET);
+//        $this->assertEquals('user-by-gender-age', $result[0]);
+//        $this->assertArrayHasKey('gender', $result[1]);
+//        $this->assertArrayHasKey('age', $result[1]);
 
         $result = $routerLogicFunction('/user/123/friends/321', Route::METHOD_GET);
         $this->assertEquals('user-by-id-friends-with-id', $result[0]);
