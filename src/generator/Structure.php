@@ -65,10 +65,18 @@ class Structure
         $code = $this->generator->flush();
     }
 
+    /**
+     * Generate routing conditions logic.
+     *
+     * @param Branch[] $branches Collection of branches for generation
+     * @param string $currentString Resursion logic path string
+     * @return void
+     */
     protected function generate($branches, $currentString = '$path')
     {
+        // Recursion exit
         if (!sizeof($branches)) {
-            return false;
+            return ;
         }
 
         /** @var Branch $branch */
@@ -79,7 +87,7 @@ class Structure
         $this->generate($branch->branches);
 
         // Iterate all branches starting from second and not touching last one
-        for ($i = 1, $count = sizeof($branches); $i < $count - 1; $i++) {
+        for ($i = 0, $count = sizeof($branches); $i < $count; $i++) {
             // Take next branch from the beginning
             $branch = array_shift($branches);
             // Create condition
@@ -88,6 +96,7 @@ class Structure
             $this->generate($branch->branches);
         }
 
+        // Close condition
         $this->generator->endIfCondition();
     }
 }
