@@ -25,7 +25,7 @@ class Structure
      *
      * @param RouteCollection $routes Collection of routes for routing logic creation
      */
-    public function __construct(RouteCollection $routes)
+    public function __construct(RouteCollection $routes, Genera)
     {
         // Add root branch object
         $this->logic = new Branch("");
@@ -50,12 +50,7 @@ class Structure
             }
         }
 
-        $this->logic->sort();
-
-        $path = '';
-        $end = false;
-
         // Sort branches in correct order following routing logic rules
-
+        $this->logic->sort();
     }
 }

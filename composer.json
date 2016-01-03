@@ -20,7 +20,8 @@
   "autoload": {
     "classmap": ["src/"],
     "psr-4": {
-      "samsonframework\\routing\\": "src/"
+      "samsonframework\\routing\\": "src/",
+      "samsonphp\\generator\\": "src/"
     }
   },
   "config":{
