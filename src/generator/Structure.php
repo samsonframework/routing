@@ -20,17 +20,6 @@ class Structure
     /** @var Branch */
     protected $logic;
 
-    protected function findBranch($routePart)
-    {
-        foreach ($this->branches as $identifier => $branch) {
-            if ($identifier === $routePart) {
-                return $branch;
-            }
-        }
-
-        return null;
-    }
-
     /**
      * Structure constructor.
      *

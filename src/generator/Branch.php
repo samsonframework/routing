@@ -43,14 +43,7 @@ class Branch
         $this->path = $routePattern;
         $this->depth = $depth;
         $this->parent = $parent;
-
-        // Define route part node type
-        if (preg_match(Route::PARAMETERS_FILTER_PATTERN, $routePattern, $matches)) {
-            $filter = &$matches['filter'];
-            $this->node = new ParameterNode($matches['name'], $filter);
-        } else {
-            $this->node = new TextNode($routePattern);
-        }
+        $this->node = $this->getNodeFromRoutePart($routePattern);
     }
 
     /**
@@ -78,7 +71,16 @@ class Branch
      */
     public function add($routePart)
     {
-        return $this->branches[$routePart] = new self($routePart, $this->depth + 1, $this);
+        // Get node type of created branch
+        if (!is_a($this->getNodeFromRoutePart($routePart), __NAMESPACE__.'\ParameterNode')) {
+            // Create ne branch
+            $branch = new self($routePart, $this->depth + 1, $this);
+            // Add new branch to the beginning of collection
+            $this->branches = array_merge(array($routePart => $branch), $this->branches);
+            return $branch;
+        } else { // Add new branch to the end of collection
+            return $this->branches[$routePart] = new self($routePart, $this->depth + 1, $this);
+        }
     }
 
     /** @return string Get full logic branch path */
@@ -94,5 +96,22 @@ class Branch
         } while (isset($pointer));
 
         return implode(Route::DELIMITER, $result);
+    }
+
+    /**
+     * Define which node type is this logic branch.
+     *
+     * @param string $routePart Route logic part
+     * @return ParameterNode|TextNode Routing logic node instance
+     */
+    protected function getNodeFromRoutePart($routePart)
+    {
+        // Define route part node type
+        if (preg_match(Route::PARAMETERS_FILTER_PATTERN, $routePart, $matches)) {
+            $filter = &$matches['filter'];
+            return new ParameterNode($matches['name'], $filter);
+        } else {
+            return new TextNode($routePart);
+        }
     }
 }
