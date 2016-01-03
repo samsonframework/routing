@@ -9,6 +9,7 @@ namespace samsonframework\routing\generator;
 
 use samsonframework\routing\Route;
 use samsonframework\routing\RouteCollection;
+use samsonphp\generator\Generator;
 
 /**
  * Routing logic structure.
@@ -24,8 +25,9 @@ class Structure
      * Structure constructor.
      *
      * @param RouteCollection $routes Collection of routes for routing logic creation
+     * @param Generator $generator Code generation
      */
-    public function __construct(RouteCollection $routes, Genera)
+    public function __construct(RouteCollection $routes, Generator $generator)
     {
         // Add root branch object
         $this->logic = new Branch("");
