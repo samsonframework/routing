@@ -143,7 +143,16 @@ class Branch
             return -1;
         } elseif ($aBranch->isParametrized() && !$bBranch->isParametrized()) {
             return 1;
+        } elseif ($aBranch->isParametrized() && $bBranch->isParametrized()) {
+            if (isset($aBranch->node->regexp{1}) && !isset($bBranch->node->regexp{1})) {
+                return -1;
+            } elseif (!isset($aBranch->node->regexp{1}) && isset($bBranch->node->regexp{1})) {
+                return 1;
+            }
         }
+
+        // Return branch size comparison, longer branches should go on top
+        return $aBranch->size < $bBranch->size ? 1 : -1;
     }
 
     /**
@@ -152,7 +161,7 @@ class Branch
     public function sort()
     {
         // Sort this collection
-        usort($this->branches, array($this, 'sorter'));
+        uasort($this->branches, array($this, 'sorter'));
 
         // Iterate nested collections and sort them
         foreach ($this->branches as $branch) {
