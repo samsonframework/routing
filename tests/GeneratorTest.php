@@ -41,15 +41,19 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
     public function testGeneration()
     {
         $routes = new RouteCollection();
-        $routes[] = new Route('/', array($this, 'baseCallback'), 'main-page', Route::METHOD_GET);
-        $routes[] = new Route('/{page}', array($this, 'baseWithPageCallback'), 'inner-page', Route::METHOD_GET);
+        $routes['main-page'] = new Route('/', array($this, 'baseCallback'));
+        $routes['inner-page'] = new Route('/{page}', array($this, 'baseWithPageCallback'));
+        // This one would be overriden by next route due to automatic slash addition to the end of the route
         $routes['user-home'] = new Route('/user/', array($this, 'baseCallback'));
-        $routes[] = new Route('/user/{id}', array($this, 'userWithIDCallback'), 'user-by-id', Route::METHOD_GET);
-        $routes[] = new Route('/user/{id}/form', array($this, 'userWithIDFormCallback'), 'user-by-id-form', Route::METHOD_GET);
-        $routes[] = new Route('/{entity}/{id}/form', array($this, 'entityWithIDFormCallback'), 'entity-by-id-form', Route::METHOD_GET);
-        $routes[] = new Route('/{id}/test/{page:\d+}', array($this, 'entityWithIDFormCallback'), 'entity-by-id-form-test', Route::METHOD_GET);
-        $routes[] = new Route('/{id}/{page:\d+}', array($this, 'entityWithIDFormCallback'), 'two-params-matching', Route::METHOD_GET);
-        $routes[] = new Route('/{num}/{page:\d+}', array($this, 'entityWithIDFormCallback'), 'two-params', Route::METHOD_GET);
+        $routes['user-home-without-slash'] = new Route('/user', array($this, 'baseCallback'));
+        $routes['user-by-id'] = new Route('/user/{id}', array($this, 'userWithIDCallback'));
+        $routes['user-by-id-form'] = new Route('/user/{id}/form', array($this, 'userWithIDFormCallback'));
+        $routes['user-by-id-friends'] = new Route('/user/{id}/friends', array($this, 'userWithIDFormCallback'));
+        $routes['user-by-id-friends-with-id'] = new Route('/user/{id}/friends/{groupid}', array($this, 'userWithIDFormCallback'));
+        $routes['entity-by-id-form'] = new Route('/{entity}/{id}/form', array($this, 'entityWithIDFormCallback'));
+        $routes['entity-by-id-form-test'] = new Route('/{id}/test/{page:\d+}', array($this, 'entityWithIDFormCallback'));
+        $routes['two-params-matching'] = new Route('/{id}/{page:\d+}', array($this, 'entityWithIDFormCallback'));
+        $routes['two-params'] = new Route('/{num}/{page:\d+}', array($this, 'entityWithIDFormCallback'));
 
         $generator = new Generator();
         $routerLogicFunction = '__router'.rand(0, 1000);
@@ -80,6 +84,15 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('user-by-id-form', $result[0]);
         $this->assertArrayHasKey('id', $result[1]);
 
+        $result = $routerLogicFunction('/user/123/friends', Route::METHOD_GET);
+        $this->assertEquals('user-by-id-friends', $result[0]);
+        $this->assertArrayHasKey('id', $result[1]);
+
+        $result = $routerLogicFunction('/user/123/friends/321', Route::METHOD_GET);
+        $this->assertEquals('user-by-id-friends-with-id', $result[0]);
+        $this->assertArrayHasKey('id', $result[1]);
+        $this->assertArrayHasKey('groupid', $result[1]);
+
         $result = $routerLogicFunction('/friend/123/form', Route::METHOD_GET);
         $this->assertEquals('entity-by-id-form', $result[0]);
         $this->assertArrayHasKey('entity', $result[1]);
@@ -90,7 +103,11 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayHasKey('id', $result[1]);
         $this->assertArrayHasKey('page', $result[1]);
 
+        // We consider that all routes are having slash at the end
         $result = $routerLogicFunction('/user/', Route::METHOD_GET);
-        $this->assertEquals('user-home', $result[0]);
+        $this->assertEquals('user-home-without-slash', $result[0]);
+
+        $result = $routerLogicFunction('/user', Route::METHOD_GET);
+        $this->assertEquals('user-home-without-slash', $result[0]);
     }
 }
