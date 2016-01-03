@@ -50,6 +50,8 @@ class Structure
             }
         }
 
+        $this->logic->sort();
+
         $path = '';
         $end = false;
 

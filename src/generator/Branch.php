@@ -28,8 +28,11 @@ class Branch
     /** @var self Pointer to parent element */
     protected $parent;
 
-    /** @var int Logic branch depth */
+    /** @var int Current logic branch depth */
     protected $depth = 0;
+
+    /** @var int Total branch length */
+    protected $size = 0;
 
     /**
      * Branch constructor.
@@ -71,16 +74,21 @@ class Branch
      */
     public function add($routePart)
     {
+        // Increase total branch size as we adding inner elements
+        $this->size++;
+
+        // Create ne branch
+        $branch = new self($routePart, $this->depth + 1, $this);
+
         // Get node type of created branch
-        if (!is_a($this->getNodeFromRoutePart($routePart), __NAMESPACE__.'\ParameterNode')) {
-            // Create ne branch
-            $branch = new self($routePart, $this->depth + 1, $this);
+        if (!$branch->isParametrized()) {
             // Add new branch to the beginning of collection
             $this->branches = array_merge(array($routePart => $branch), $this->branches);
-            return $branch;
         } else { // Add new branch to the end of collection
-            return $this->branches[$routePart] = new self($routePart, $this->depth + 1, $this);
+            $this->branches[$routePart] = $branch;
         }
+
+        return $branch;
     }
 
     /** @return string Get full logic branch path */
@@ -112,6 +120,43 @@ class Branch
             return new ParameterNode($matches['name'], $filter);
         } else {
             return new TextNode($routePart);
+        }
+    }
+
+    /** @return bool True if branch has parameter */
+    public function isParametrized()
+    {
+        return is_a($this->node, __NAMESPACE__ . '\ParameterNode');
+    }
+
+    /**
+     * Compare two branch and define which has greater priority.
+     *
+     * @param Branch $aBranch
+     * @param Branch $bBranch
+     * @return int Comparison result
+     */
+    protected function sorter(Branch $aBranch, Branch $bBranch)
+    {
+        // Define if some of the branches if parametrized
+        if (!$aBranch->isParametrized() && $bBranch->isParametrized()) {
+            return -1;
+        } elseif ($aBranch->isParametrized() && !$bBranch->isParametrized()) {
+            return 1;
+        }
+    }
+
+    /**
+     * Perform routing logic branches sorting to implement needed rules.
+     */
+    public function sort()
+    {
+        // Sort this collection
+        usort($this->branches, array($this, 'sorter'));
+
+        // Iterate nested collections and sort them
+        foreach ($this->branches as $branch) {
+            $branch->sort();
         }
     }
 }
