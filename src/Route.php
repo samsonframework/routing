@@ -25,6 +25,9 @@ class Route
     /** Route identifier key */
     const ROUTE_KEY = '_0';
 
+    /** Route parts delimiter */
+    const DELIMITER = '/';
+
     /** @var array Collection of all supported HTTP methods */
     public static $httpMethods = array(
         self::METHOD_GET,

@@ -7,6 +7,8 @@
  */
 namespace samsonframework\routing;
 
+use samsonframework\routing\generator\Structure;
+
 /**
  * Generates routing logic function.
  *
@@ -23,6 +25,8 @@ class Generator
      */
     public function generate(RouteCollection &$routesCollection, $routerFunction = '__router')
     {
+        $structure = new Structure($routesCollection);
+
         $routeTree = $this->createRoutesArray($routesCollection);
 
         // Flag for elseif
