@@ -25,7 +25,7 @@ class Generator
      */
     public function generate(RouteCollection &$routesCollection, $routerFunction = '__router')
     {
-        $structure = new Structure($routesCollection);
+        $structure = new Structure($routesCollection, new \samsonphp\generator\Generator());
 
         $routeTree = $this->createRoutesArray($routesCollection);
 

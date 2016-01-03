@@ -17,10 +17,10 @@ use samsonframework\routing\Route;
 class Branch
 {
     /** @var self[] */
-    protected $branches = array();
+    public $branches = array();
 
     /** @var Node */
-    protected $node;
+    public $node;
 
     /** @var string Route pattern path */
     protected $path;
@@ -72,13 +72,13 @@ class Branch
      * @param string $routePart Route logic part
      * @return self New created branch
      */
-    public function add($routePart)
+    public function add($routePart, $routeIdentifier = null)
     {
         // Increase total branch size as we adding inner elements
         $this->size++;
 
         // Create ne branch
-        $branch = new self($routePart, $this->depth + 1, $this);
+        $branch = new self($routePart, $this->depth + 1, $this, $routeIdentifier);
 
         // Get node type of created branch
         if (!$branch->isParametrized()) {
@@ -166,6 +166,24 @@ class Branch
         // Iterate nested collections and sort them
         foreach ($this->branches as $branch) {
             $branch->sort();
+        }
+    }
+
+    /**
+     * Get current branch PHP code logic condition.
+     *
+     * @param string $currentString Current routing logic path variable
+     * @return string Logic condition PHP code
+     */
+    public function toLogicConditionCode($currentString)
+    {
+        if ($this->isParametrized()) {
+            // Use defalut parameter filter
+            $filter = isset($this->node->regexp{1}) ? $this->node->regexp : '[^\]+';
+            // Generate regular expression matching condition
+            return 'preg_match("/(?<' . $this->node->name. '>' . $filter .')/i", '.$currentString.', $matches)';
+        } else {
+            return $currentString . ' === "' . $this->node->content .'"';
         }
     }
 }
