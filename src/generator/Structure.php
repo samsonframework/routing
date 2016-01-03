@@ -30,7 +30,7 @@ class Structure
      * @param RouteCollection $routes Collection of routes for routing logic creation
      * @param Generator $generator Code generation
      */
-    public function __construct(RouteCollection $routes, Generator $generator)
+    public function __construct(RouteCollection $routes, Generator $generator, $functionName = '__router')
     {
         // Add root branch object
         $this->logic = new Branch("");
@@ -41,8 +41,12 @@ class Structure
             // Set branch pointer to root branch
             $currentBranch = $this->logic;
 
+            // We should count "/" route here
+            $routeParts = $route->pattern == '/' ? array('/')
+                : array_filter(explode(Route::DELIMITER, $route->pattern));
+
             // Split route pattern into parts by its delimiter
-            foreach (array_filter(explode(Route::DELIMITER, $route->pattern)) as $routePart) {
+            foreach ($routeParts as $routePart) {
                 // Try to find matching branch by its part
                 $tempBranch = $currentBranch->find($routePart);
 
@@ -58,21 +62,39 @@ class Structure
 
         // Sort branches in correct order following routing logic rules
         $this->logic->sort();
+    }
+
+    /**
+     * Generate routing logic function.
+     *
+     * @param string $functionName Function name
+     * @return string Routing logic function PHP code
+     */
+    public function generate($functionName = '__router')
+    {
+        $this->generator
+            ->defFunction($functionName, array('$path', '$method'))
+            ->defVar('$matches', array())
+            ->newLine('$originalPath = $path;')
+            ->defVar('$parameters', array())
+        ;
 
         // Perform routing logic generation
-        $this->generate($this->logic->branches);
+        $this->innerGenerate($this->logic->branches);
 
-        $code = $this->generator->flush();
+        $this->generator->newLine('return null;')->endFunction();
+
+        return $this->generator->flush();
     }
 
     /**
      * Generate routing conditions logic.
      *
      * @param Branch[] $branches Collection of branches for generation
-     * @param string $currentString Resursion logic path string
+     * @param string $currentString Recursion logic path string
      * @return void
      */
-    protected function generate($branches, $currentString = '$path')
+    protected function innerGenerate($branches, $currentString = '$path', Branch $parent = null)
     {
         // Recursion exit
         if (!sizeof($branches)) {
@@ -81,19 +103,64 @@ class Structure
 
         /** @var Branch $branch */
         $branch = array_shift($branches);
+        // As this is first sub-branch always create if condition
         $this->generator->defIfCondition($branch->toLogicConditionCode($currentString));
 
-        // Generate conditions for this branch
-        $this->generate($branch->branches);
+        // Store parameter to collection
+        if ($branch->isParametrized()) {
+            $this->generator
+                ->newLine('$parameters[\''.$branch->node->name.'\'] = $matches[\''.$branch->node->name.'\'];');
+        }
+
+        if (sizeof($branch->branches)) {
+            // Substract part of path
+            $this->generator->newLine('$path = '.$branch->removeMatchedPathCode($currentString));
+            // Generate conditions for this branch
+            $this->innerGenerate($branch->branches, $currentString, $branch);
+        } else {
+            // Close first condition
+            $this->generator->newLine('return array(\'' . $branch->identifier . '\', $parameters);');
+        }
 
         // Iterate all branches starting from second and not touching last one
-        for ($i = 0, $count = sizeof($branches); $i < $count; $i++) {
+        $branchKeys = array_keys($branches);
+        for ($i = 0, $count = sizeof($branchKeys); $i < $count; $i++) {
             // Take next branch from the beginning
-            $branch = array_shift($branches);
-            // Create condition
-            $this->generator->defElseIfCondition($branch->toLogicConditionCode($currentString));
-            // Generate conditions for this branch
-            $this->generate($branch->branches);
+            $branch = $branches[$branchKeys[$i]];
+            $prevBranch = &$branchKeys[$i-1];
+
+            if (isset($prevBranch) && $branches[$prevBranch]->isParametrized() && $branch->isParametrized()) {
+                $this->generator
+                    // Close condition
+                    ->endIfCondition()
+                    // Restore $path variable
+                    ->newLine('$path = $originalPath;')
+                    // Start new parametrized condition as we cannot continue with param
+                    ->defIfCondition($branch->toLogicConditionCode($currentString))
+                    // Store parameter to collection
+                    ->newLine('$parameters[\''.$branch->node->name.'\'] = $matches[\''.$branch->node->name.'\'];');
+            } elseif ($branch->isParametrized()) {
+                $this->generator
+                    // Start new parametrized condition as we cannot continue with param
+                    ->defElseIfCondition($branch->toLogicConditionCode($currentString))
+                    // Store parameter to collection
+                    ->newLine('$parameters[\''.$branch->node->name.'\'] = $matches[\''.$branch->node->name.'\'];')
+                    ;
+            } else { // Continue condition branching
+                $this->generator
+                    ->defElseIfCondition($branch->toLogicConditionCode($currentString))
+                    ;
+            }
+
+            if (sizeof($branch->branches)) {
+                // Substract part of path
+                $this->generator->newLine('$path = '.$branch->removeMatchedPathCode($currentString));
+                // Generate conditions for this branch
+                $this->innerGenerate($branch->branches, $currentString, $branch);
+            } else {
+                // Close current condition
+                $this->generator->newLine('return array(\'' . $branch->identifier . '\', $parameters);');
+            }
         }
 
         // Close condition

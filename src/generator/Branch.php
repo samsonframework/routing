@@ -22,6 +22,9 @@ class Branch
     /** @var Node */
     public $node;
 
+    /** @var string Route identifier */
+    public $identifier;
+
     /** @var string Route pattern path */
     protected $path;
 
@@ -41,12 +44,13 @@ class Branch
      * @param int $depth Current branch logic depth
      * @param self $parent Pointer to parent branch
      */
-    public function __construct($routePattern, $depth = 0, self $parent = null)
+    public function __construct($routePattern, $depth = 0, self $parent = null, $routeIdentifier = '')
     {
         $this->path = $routePattern;
         $this->depth = $depth;
         $this->parent = $parent;
         $this->node = $this->getNodeFromRoutePart($routePattern);
+        $this->identifier = $routeIdentifier;
     }
 
     /**
@@ -175,15 +179,33 @@ class Branch
      * @param string $currentString Current routing logic path variable
      * @return string Logic condition PHP code
      */
-    public function toLogicConditionCode($currentString)
+    public function toLogicConditionCode($currentString, $offset = 1)
     {
         if ($this->isParametrized()) {
-            // Use defalut parameter filter
-            $filter = isset($this->node->regexp{1}) ? $this->node->regexp : '[^\]+';
+            // Use default parameter filter
+            $filter = isset($this->node->regexp{1}) ? $this->node->regexp : '[^\/]+';
             // Generate regular expression matching condition
-            return 'preg_match("/(?<' . $this->node->name. '>' . $filter .')/i", '.$currentString.', $matches)';
+            return 'preg_match(\'/(?<' . $this->node->name . '>' . $filter . ')/i\', ' . $currentString . ', $matches)';
+        } elseif (sizeof($this->branches)) {
+            return 'substr('.$currentString . ', '.$offset.', '.strlen($this->node->content).') === "' . $this->node->content .'"';
+        } else { // This is last condition in branch it should match
+            return $currentString . ' === \''.$this->node->content.'\'';
+        }
+    }
+
+    /**
+     * Routing logic path cutter.
+     *
+     * @param string $currentString Current routing logic path variable
+     * @return string Path cutting PHP code
+     */
+    public function removeMatchedPathCode($currentString)
+    {
+        if ($this->isParametrized()) {
+            // Generate regular expression matching condition
+            return 'substr('.$currentString.', strlen($matches[\''.$this->node->name.'\']) + 1);';
         } else {
-            return $currentString . ' === "' . $this->node->content .'"';
+            return 'substr('.$currentString.', '.(strlen($this->node->content) + 1).');';
         }
     }
 }
