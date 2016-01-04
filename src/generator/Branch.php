@@ -16,7 +16,7 @@ use samsonframework\routing\Route;
  */
 class Branch
 {
-    /** @var self[] */
+    /** @var Branch[] */
     public $branches = array();
 
     /** @var Node */
@@ -28,7 +28,7 @@ class Branch
     /** @var string Route pattern path */
     protected $path;
 
-    /** @var self Pointer to parent element */
+    /** @var Branch Pointer to parent element */
     protected $parent;
 
     /** @var int Current logic branch depth */
@@ -42,9 +42,9 @@ class Branch
      *
      * @param string $routePattern Route that represent routing logic branch
      * @param int $depth Current branch logic depth
-     * @param self $parent Pointer to parent branch
+     * @param Branch $parent Pointer to parent branch
      */
-    public function __construct($routePattern, $depth = 0, self $parent = null, $routeIdentifier = '')
+    public function __construct($routePattern, $depth = 0, Branch $parent = null, $routeIdentifier = '')
     {
         $this->path = $routePattern;
         $this->depth = $depth;
@@ -57,7 +57,7 @@ class Branch
      * Find branch by route part.
      *
      * @param string $routePart Route logic part
-     * @return null|self Found branch or null
+     * @return null|Branch Found branch or null
      */
     public function find($routePart)
     {
@@ -74,7 +74,8 @@ class Branch
      * Add new branch.
      *
      * @param string $routePart Route logic part
-     * @return self New created branch
+     * @param null|string $routeIdentifier Route identifier
+     * @return Branch New created branch
      */
     public function add($routePart, $routeIdentifier = null)
     {
@@ -86,7 +87,7 @@ class Branch
         }
 
         // Create ne branch
-        $branch = new self($routePart, $this->depth + 1, $this, $routeIdentifier);
+        $branch = new Branch($routePart, $this->depth + 1, $this, $routeIdentifier);
 
         // Get node type of created branch
         if (!$branch->isParametrized()) {

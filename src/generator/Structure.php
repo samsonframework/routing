@@ -30,7 +30,7 @@ class Structure
      * @param RouteCollection $routes Collection of routes for routing logic creation
      * @param Generator $generator Code generation
      */
-    public function __construct(RouteCollection $routes, Generator $generator, $functionName = '__router')
+    public function __construct(RouteCollection $routes, Generator $generator)
     {
         // Add root branch object
         $this->logic = new Branch("");
@@ -114,7 +114,7 @@ class Structure
         }
 
         if (sizeof($firstBranch->branches)) {
-            // Substract part of path
+            // Subtract part of path
             $this->generator->newLine('$path = '.$firstBranch->removeMatchedPathCode($currentString));
             // Generate conditions for this branch
             $this->innerGenerate($firstBranch->branches, $currentString, $firstBranch);
