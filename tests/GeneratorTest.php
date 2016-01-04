@@ -49,6 +49,7 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $routes['user-home-without-slash'] = new Route('/user', array($this, 'baseCallback'));
         $routes['user-by-id'] = new Route('/user/{id}', array($this, 'userWithIDCallback'));
         $routes['user-by-gender-age'] = new Route('/user/{gender:(male|female)}/{age}', array($this, 'userWithIDCallback'));
+        $routes['user-by-gender-age-filtered'] = new Route('/user/{gender:(male|female)}/{age:[0-9]+}', array($this, 'userWithIDCallback'));
         $routes['user-by-id-form'] = new Route('/user/{id}/form', array($this, 'userWithIDFormCallback'));
         $routes['user-by-id-friends'] = new Route('/user/{id}/friends', array($this, 'userWithIDFormCallback'));
         $routes['user-by-id-friends-with-id'] = new Route('/user/{id}/friends/{groupid}', array($this, 'userWithIDFormCallback'));
@@ -90,7 +91,7 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('user-by-id-friends', $result[0]);
         $this->assertArrayHasKey('id', $result[1]);
 
-        $result = $routerLogicFunction('/user/male/18', Route::METHOD_GET);
+        $result = $routerLogicFunction('/user/male/18+', Route::METHOD_GET);
         $this->assertEquals('user-by-gender-age', $result[0]);
         $this->assertArrayHasKey('gender', $result[1]);
         $this->assertArrayHasKey('age', $result[1]);

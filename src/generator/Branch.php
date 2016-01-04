@@ -99,21 +99,6 @@ class Branch
         return $branch;
     }
 
-    /** @return string Get full logic branch path */
-    public function fullPath()
-    {
-        $pointer = $this;
-        $result = array();
-        do {
-            // Add path part to the beginning of array
-            array_unshift($result, $pointer->path);
-            // Switch pointer to parent branch
-            $pointer = $pointer->parent;
-        } while (isset($pointer));
-
-        return implode(Route::DELIMITER, $result);
-    }
-
     /**
      * Define which node type is this logic branch.
      *
@@ -187,12 +172,12 @@ class Branch
     {
         if ($this->isParametrized()) {
             // Use default parameter filter
-            $filter = isset($this->node->regexp{1}) ? $this->node->regexp : '[^\/]+';
+            $filter = '^'.(isset($this->node->regexp{1}) ? $this->node->regexp : '[^\/]+');
             // Generate regular expression matching condition
             if (sizeof($this->branches)) {
                 $condition = 'preg_match(\'/(?<' . $this->node->name . '>' . $filter . ')/i\', ' . $currentString . ', $matches)';
             } else {
-                $condition = 'preg_match(\'/(?<' . $this->node->name . '>' . $filter . ')/i\', ' . $currentString . ', $matches)';
+                $condition = 'preg_match(\'/(?<' . $this->node->name . '>' . $filter . '$)/i\', ' . $currentString . ', $matches)';
             }
             return $condition;
         } elseif (sizeof($this->branches)) {
