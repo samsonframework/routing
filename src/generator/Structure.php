@@ -102,11 +102,6 @@ class Structure
      */
     protected function innerGenerate($branches, $currentString = '$path', Branch $parent = null)
     {
-        // Recursion exit
-        if (!sizeof($branches)) {
-            return ;
-        }
-
         /** @var Branch $branch */
         $firstBranch = array_shift($branches);
         // As this is first sub-branch always create if condition

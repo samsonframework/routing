@@ -55,7 +55,6 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $routes['user-by-id-friends-with-id'] = new Route('/user/{id}/friends/{groupid}', array($this, 'userWithIDFormCallback'));
         $routes['entity-by-id-form'] = new Route('/{entity}/{id}/form', array($this, 'entityWithIDFormCallback'));
         $routes['entity-by-id-form-test'] = new Route('/{id}/test/{page:\d+}', array($this, 'entityWithIDFormCallback'));
-        //$routes['two-params-matching'] = new Route('/{id}/{page:\d+}', array($this, 'entityWithIDFormCallback'));
         $routes['two-params'] = new Route('/{num}/{page:\d+}', array($this, 'entityWithIDFormCallback'));
 
         $generator = new Structure($routes, new \samsonphp\generator\Generator());
