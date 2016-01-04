@@ -79,7 +79,11 @@ class Branch
     public function add($routePart, $routeIdentifier = null)
     {
         // Increase total branch size as we adding inner elements
-        $this->size++;
+        $pointer = $this;
+        while (isset($pointer)) {
+            $pointer->size++;
+            $pointer = $pointer->parent;
+        }
 
         // Create ne branch
         $branch = new self($routePart, $this->depth + 1, $this, $routeIdentifier);
@@ -179,17 +183,23 @@ class Branch
      * @param string $currentString Current routing logic path variable
      * @return string Logic condition PHP code
      */
-    public function toLogicConditionCode($currentString, $offset = 1)
+    public function toLogicConditionCode($currentString, $offset = 0)
     {
         if ($this->isParametrized()) {
             // Use default parameter filter
             $filter = isset($this->node->regexp{1}) ? $this->node->regexp : '[^\/]+';
             // Generate regular expression matching condition
-            return 'preg_match(\'/(?<' . $this->node->name . '>' . $filter . ')/i\', ' . $currentString . ', $matches)';
+            if (sizeof($this->branches)) {
+                $condition = 'preg_match(\'/(?<' . $this->node->name . '>' . $filter . ')/i\', ' . $currentString . ', $matches)';
+            } else {
+                $condition = 'preg_match(\'/(?<' . $this->node->name . '>' . $filter . ')/i\', ' . $currentString . ', $matches)';
+            }
+            return $condition;
         } elseif (sizeof($this->branches)) {
             return 'substr('.$currentString . ', '.$offset.', '.strlen($this->node->content).') === "' . $this->node->content .'"';
         } else { // This is last condition in branch it should match
-            return $currentString . ' === \''.$this->node->content.'\'';
+            $content = $this->node->content == '/' ? '' : $this->node->content;
+            return $currentString . ' === \''.$content.'\'';
         }
     }
 
@@ -203,7 +213,7 @@ class Branch
     {
         if ($this->isParametrized()) {
             // Generate regular expression matching condition
-            return 'substr('.$currentString.', strlen($matches[\''.$this->node->name.'\']) + 1);';
+            return 'substr('.$currentString.', strlen($matches[0]) + 1);';
         } else {
             return 'substr('.$currentString.', '.(strlen($this->node->content) + 1).');';
         }

@@ -112,9 +112,9 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
 
         // We consider that all routes are having slash at the end
         $result = $routerLogicFunction('/user/', Route::METHOD_GET);
-        $this->assertEquals('user-home-without-slash', $result[0]);
+        $this->assertEquals('user-home', $result[0]);
 
         $result = $routerLogicFunction('/user', Route::METHOD_GET);
-        $this->assertEquals('user-home-without-slash', $result[0]);
+        $this->assertEquals('user-home', $result[0]);
     }
 }

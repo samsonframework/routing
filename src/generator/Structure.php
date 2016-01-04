@@ -79,7 +79,9 @@ class Structure
         $this->generator
             ->defFunction($functionName, array('$path', '$method'))
             ->defVar('$matches', array())
+            ->newLine('$path = ltrim($path, \'/\');') // Remove first slash
             ->newLine('$originalPath = $path;')
+
             ->defVar('$parameters', array())
         ;
 
