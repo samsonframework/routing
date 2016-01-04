@@ -90,10 +90,10 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('user-by-id-friends', $result[0]);
         $this->assertArrayHasKey('id', $result[1]);
 
-//        $result = $routerLogicFunction('/user/male/18', Route::METHOD_GET);
-//        $this->assertEquals('user-by-gender-age', $result[0]);
-//        $this->assertArrayHasKey('gender', $result[1]);
-//        $this->assertArrayHasKey('age', $result[1]);
+        $result = $routerLogicFunction('/user/male/18', Route::METHOD_GET);
+        $this->assertEquals('user-by-gender-age', $result[0]);
+        $this->assertArrayHasKey('gender', $result[1]);
+        $this->assertArrayHasKey('age', $result[1]);
 
         $result = $routerLogicFunction('/user/123/friends/321', Route::METHOD_GET);
         $this->assertEquals('user-by-id-friends-with-id', $result[0]);
