@@ -68,8 +68,8 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $result = $routerLogicFunction('/', Route::METHOD_GET);
         $this->assertEquals('main-page', $result[0]);
 
-//        $result = $routerLogicFunction('/', Route::METHOD_POST);
-//        $this->assertEquals(null, $result[0]);
+        $result = $routerLogicFunction('/', Route::METHOD_POST);
+        $this->assertEquals(null, $result[0]);
 
         $result = $routerLogicFunction('/123', Route::METHOD_GET);
         $this->assertEquals('inner-page', $result[0]);
