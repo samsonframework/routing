@@ -131,9 +131,19 @@ class Structure
                 $this->generator->newLine($branch->storeMatchedParameter());
             }
 
+            /**
+             * Optimization to remove nested string operations - we create temporary $path variables
+             */
+            $pathVariable = '$path' . rand(0, 99999);
+
+            // Do not output new $path variable creation if this is logic end
+            if (sizeof($branch->branches)) {
+                $this->generator->newLine($pathVariable . ' = ' . $branch->removeMatchedPathCode($pathValue) . ';');
+            }
+
             // We should subtract part of $path var to remove this parameter
             // Go deeper in recursion
-            $this->innerGenerate2($branch, $branch->removeMatchedPathCode($pathValue), false);
+            $this->innerGenerate2($branch, $pathVariable, false);
         }
 
         // Return route if branch has it
