@@ -77,7 +77,7 @@ class Structure
                 $tempBranch = $currentBranch->find($routePart);
 
                 // Define if this is last part so this branch should match route
-                $matchedRoute = $i == $size - 1 ? $route->identifier : '';
+                $matchedRoute = $i == $size - 1 ? $route : null;
 
                 // We have not found this branch
                 if (null === $tempBranch) {
@@ -86,10 +86,12 @@ class Structure
                 } else { // Store pointer to found branch
                     $currentBranch = $tempBranch;
 
+                    // TODO: this should be improved
                     // If we have created this branch before but now we got route for it
-                    if (isset($matchedRoute{1})) {
+                    if (isset($matchedRoute)) {
                         // Store route identifier
-                        $currentBranch->identifier = $matchedRoute;
+                        $currentBranch->identifier = $matchedRoute->identifier;
+                        $currentBranch->fullPath = $matchedRoute->pattern;
                     }
                 }
             }
