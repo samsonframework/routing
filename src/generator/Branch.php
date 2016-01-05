@@ -25,14 +25,11 @@ class Branch
     /** @var string Route identifier */
     public $identifier;
 
-    /** @var string Route pattern path */
-    protected $path;
+    /** @var string Route full path */
+    public $fullPath;
 
     /** @var Branch Pointer to parent element */
     protected $parent;
-
-    /** @var int Current logic branch depth */
-    protected $depth = 0;
 
     /** @var int Total branch length */
     protected $size = 0;
@@ -40,17 +37,19 @@ class Branch
     /**
      * Branch constructor.
      *
-     * @param string $routePattern Route that represent routing logic branch
-     * @param int $depth Current branch logic depth
+     * @param string $patterPath Route pattern part that represent routing logic branch
      * @param Branch $parent Pointer to parent branch
+     * @param Route $route Route instance
      */
-    public function __construct($routePattern, $depth = 0, Branch $parent = null, $routeIdentifier = '')
+    public function __construct($patterPath, Branch $parent = null, Route $route = null)
     {
-        $this->path = $routePattern;
-        $this->depth = $depth;
+        $this->node = $this->getNodeFromRoutePart($patterPath);
         $this->parent = $parent;
-        $this->node = $this->getNodeFromRoutePart($routePattern);
-        $this->identifier = $routeIdentifier;
+
+        if (isset($route)) {
+            $this->identifier = $route->identifier;
+            $this->fullPath = $route->pattern;
+        }
     }
 
     /**
@@ -74,10 +73,10 @@ class Branch
      * Add new branch.
      *
      * @param string $routePart Route logic part
-     * @param null|string $routeIdentifier Route identifier
+     * @param Route $route
      * @return Branch New created branch
      */
-    public function add($routePart, $routeIdentifier = null)
+    public function add($routePart, Route $route = null)
     {
         // Increase total branch size as we adding inner elements
         $pointer = $this;
@@ -87,7 +86,7 @@ class Branch
         }
 
         // Create ne branch
-        $branch = new Branch($routePart, $this->depth + 1, $this, $routeIdentifier);
+        $branch = new Branch($routePart, $this, $route);
 
         // Get node type of created branch
         if (!$branch->isParametrized()) {

@@ -16,6 +16,9 @@ use samsonframework\routing\exception\FailedLogicCreation;
  */
 class Core
 {
+    /** Generic name of routing logic function */
+    const ROUTING_LOGIC_FUNCTION = '__router';
+
     /** @var RouteCollection Collection of all application routes */
     protected $routes = array();
 
@@ -57,24 +60,11 @@ class Core
      *
      * @param string $path HTTP request path
      * @param string $method HTTP request method
-     * @param Route|null $route Found Route instance
-     * @return bool|mixed
-     * @throws FailedLogicCreation
+     * @return null|array Dispatched route metadata
      */
-    public function dispatch($path, $method, &$route = null)
+    public function dispatch($path, $method)
     {
-        // Remove GET parameters
-        $path = strtok($path, '?');
-
         // Perform routing logic
-        if (is_array($routeData = __router($path, $method))) {
-            /** @var Route $route Retrieve found Route object */
-            $route = $this->routes[$routeData[0]];
-
-            // Perform route callback action
-            return call_user_func_array($route->callback, $this->parseParameters($route, $routeData[1]));
-        }
-
-        return false;
+        return call_user_func(self::ROUTING_LOGIC_FUNCTION, $path, $method);
     }
 }

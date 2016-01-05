@@ -47,8 +47,8 @@ class CoreTest extends \PHPUnit_Framework_TestCase
             $route
         );
 
-        $this->assertEquals(true, $dispatchingResult);
-        $this->assertEquals($identifier, $route->identifier);
+        $this->assertEquals($identifier, $dispatchingResult[0]);
+        $this->assertArrayHasKey('id', $dispatchingResult[1]);
     }
 
     public function testFailedRouting()
