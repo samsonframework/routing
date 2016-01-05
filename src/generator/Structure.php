@@ -103,7 +103,7 @@ class Structure
         $this->generator
             ->defFunction($functionName, array('$path', '$method'))
             ->defVar('$matches', array())
-            ->newLine('$path = $method.\'/\'.ltrim($path, \'/\');') // Remove first slash
+            ->newLine('$path = rtrim($method.\'/\'.ltrim($path, \'/\'),\'/\');') // Remove first slash
             ->defVar('$parameters', array())
         ;
 
