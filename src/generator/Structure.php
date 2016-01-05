@@ -11,7 +11,7 @@ use samsonframework\routing\Route;
 use samsonframework\routing\RouteCollection;
 use samsonphp\generator\Generator;
 
-/**
+/**4000 160дол 5900 хирургия 3-5 коронка на имплатне 2700 23-12400 10/15
  * TODO:
  * We need to invent optimization for single-child branches
  * to make collection of nodes for them or similar and generate
@@ -22,7 +22,7 @@ use samsonphp\generator\Generator;
 
 /**
  * TODO:
- * We need to add  support for not reqired parameters
+ * We need to add  support for optional parameters.
  */
 
 /**
@@ -84,6 +84,12 @@ class Structure
                     $currentBranch = $currentBranch->add($routePart, $matchedRoute);
                 } else { // Store pointer to found branch
                     $currentBranch = $tempBranch;
+
+                    // If we have created this branch before but now we got route for it
+                    if (isset($matchedRoute{1})) {
+                        // Store route identifier
+                        $currentBranch->identifier = $matchedRoute;
+                    }
                 }
             }
         }
@@ -103,7 +109,8 @@ class Structure
         $this->generator
             ->defFunction($functionName, array('$path', '$method'))
             ->defVar('$matches', array())
-            ->newLine('$path = rtrim($method.\'/\'.ltrim($path, \'/\'),\'/\');') // Remove first slash
+            // Remove first slash and last slash, add method as first, remove GET parameters
+            ->newLine('$path = strtok(rtrim($method.\'/\'.ltrim($path, \'/\'),\'/\'),\'?\');')
             ->defVar('$parameters', array())
         ;
 

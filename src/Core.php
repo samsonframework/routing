@@ -59,7 +59,6 @@ class Core
      * @param string $method HTTP request method
      * @param Route|null $route Found Route instance
      * @return bool|mixed
-     * @throws FailedLogicCreation
      */
     public function dispatch($path, $method, &$route = null)
     {
