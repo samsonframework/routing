@@ -35,7 +35,7 @@ class Core
     }
 
     /**
-     * Parse route parameters received from ruter logic function.
+     * Parse route parameters received from router logic function.
      *
      * @param Route $route Route instance
      * @param array $receivedParameters Collection of parsed parameters

@@ -188,7 +188,7 @@ class Branch
             }
             return $condition;
         } elseif (sizeof($this->branches)) {
-            return 'substr('.$currentString . ', '.$offset.', '.strlen($this->node->content).') === "' . $this->node->content .'"';
+            return 'substr('.$currentString . ', '.$offset.', '.strlen($this->node->content).') === \'' . $this->node->content .'\'';
         } else { // This is last condition in branch it should match
             $content = $this->node->content == '/' ? 'false' : '\''.$this->node->content.'\'';
             return $currentString . ' === '.$content;
