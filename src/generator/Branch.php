@@ -163,13 +163,19 @@ class Branch
         }
     }
 
+    /** @return bool True if this branch has a route */
+    public function hasRoute()
+    {
+        return isset($this->identifier{1});
+    }
+
     /**
      * Get current branch PHP code logic condition.
      *
      * @param string $currentString Current routing logic path variable
      * @return string Logic condition PHP code
      */
-    public function toLogicConditionCode($currentString, $offset = 0)
+    public function toLogicConditionCode($currentString = '$path', $offset = 0)
     {
         if ($this->isParametrized()) {
             // Use default parameter filter
@@ -184,9 +190,37 @@ class Branch
         } elseif (sizeof($this->branches)) {
             return 'substr('.$currentString . ', '.$offset.', '.strlen($this->node->content).') === "' . $this->node->content .'"';
         } else { // This is last condition in branch it should match
-            $content = $this->node->content == '/' ? '' : $this->node->content;
-            return $currentString . ' === \''.$content.'\'';
+            $content = $this->node->content == '/' ? 'false' : '\''.$this->node->content.'\'';
+            return $currentString . ' === '.$content;
         }
+    }
+
+    /**
+     * Generate code for storing branch matched parameter.
+     *
+     * @param string $parametersVariable Name of variable for storing route parameters
+     * @return string PHP code for storing matched parameter
+     */
+    public function storeMatchedParameter($parametersVariable = '$parameters')
+    {
+        if ($this->isParametrized()) {
+            return $parametersVariable.'[\''.$this->node->name.'\'] = $matches[\''.$this->node->name.'\'];';
+        }
+    }
+
+    /**
+     * Generate PHP code for returning route if present.
+     *
+     * @param string $parametersVariable Name of variable for storing route parameters
+     * @return string Generated PHP code for returning route if present
+     */
+    public function returnRouteCode($parametersVariable = '$parameters')
+    {
+        if ($this->hasRoute()) {
+            return 'return array(\'' . $this->identifier . '\', '.$parametersVariable.');';
+        }
+
+        return '';
     }
 
     /**
@@ -195,13 +229,13 @@ class Branch
      * @param string $currentString Current routing logic path variable
      * @return string Path cutting PHP code
      */
-    public function removeMatchedPathCode($currentString)
+    public function removeMatchedPathCode($currentString = '$path')
     {
         if ($this->isParametrized()) {
-            // Generate regular expression matching condition
-            return 'substr('.$currentString.', strlen($matches[0]) + 1);';
+            // Just remove matched from the string
+            return 'substr('.$currentString.', strlen($parameters[\''.$this->node->name.'\']) + 1)';
         } else {
-            return 'substr('.$currentString.', '.(strlen($this->node->content) + 1).');';
+            return 'substr('.$currentString.', '.(strlen($this->node->content) + 1).')';
         }
     }
 }
