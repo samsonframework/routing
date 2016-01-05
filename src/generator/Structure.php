@@ -12,6 +12,20 @@ use samsonframework\routing\RouteCollection;
 use samsonphp\generator\Generator;
 
 /**
+ * TODO:
+ * We need to invent optimization for single-child branches
+ * to make collection of nodes for them or similar and generate
+ * one preg_match or simple string matching depending on it
+ * nodes, this will simplify generated routing logic function
+ * and increase performance.
+ */
+
+/**
+ * TODO:
+ * We need to add  support for not reqired parameters
+ */
+
+/**
  * Routing logic structure.
  *
  * @package samsonframework\routing\generator
@@ -30,19 +44,20 @@ class Structure
      * @param RouteCollection $routes Collection of routes for routing logic creation
      * @param Generator $generator Code generation
      */
-    public function __construct(RouteCollection $routes, Generator $generator, $httpMethods = null)
+    public function __construct(RouteCollection $routes, Generator $generator)
     {
         $this->generator = $generator;
 
         // Add root branch object
         $this->logic = new Branch("");
 
-        // Get passed methods or use generic
-        $httpMethods = !isset($httpMethods) ? $httpMethods : Route::$httpMethods;
-
-        // Create base route branches for each HTTP method
-        foreach ($httpMethods as $method) {
-            $this->logic->add($method);
+        // Collect all HTTP method that this routes collection has
+        $httpMethods = array();
+        foreach ($routes as $route) {
+            if (!isset($httpMethods[$route->method])) {
+                $this->logic->add($route->method);
+                $httpMethods[$route->method] = '';
+            }
         }
 
         /** @var Route $route */
@@ -72,14 +87,6 @@ class Structure
                 }
             }
         }
-
-        /**
-         * We need to invent optimization for single-child branches
-         * to make collection of nodes for them or similar and generate
-         * one preg_match or simple string matching depending on it
-         * nodes, this will simplify generated routing logic function
-         * and increase performance.
-         */
 
         // Sort branches in correct order following routing logic rules
         $this->logic->sort();
