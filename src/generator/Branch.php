@@ -25,14 +25,14 @@ class Branch
     /** @var string Route identifier */
     public $identifier;
 
+    /** @var string Route full path */
+    public $fullPath;
+
     /** @var string Route pattern path */
     protected $path;
 
     /** @var Branch Pointer to parent element */
     protected $parent;
-
-    /** @var int Current logic branch depth */
-    protected $depth = 0;
 
     /** @var int Total branch length */
     protected $size = 0;
@@ -40,17 +40,17 @@ class Branch
     /**
      * Branch constructor.
      *
-     * @param string $routePattern Route that represent routing logic branch
-     * @param int $depth Current branch logic depth
+     * @param string $pattern Route pattern part that represent routing logic branch
      * @param Branch $parent Pointer to parent branch
+     * @param string $identifier Route identifier
      */
-    public function __construct($routePattern, $depth = 0, Branch $parent = null, $routeIdentifier = '')
+    public function __construct($pattern, Branch $parent = null, $identifier = '')
     {
-        $this->path = $routePattern;
-        $this->depth = $depth;
+        $this->path = $pattern;
         $this->parent = $parent;
-        $this->node = $this->getNodeFromRoutePart($routePattern);
-        $this->identifier = $routeIdentifier;
+        $this->node = $this->getNodeFromRoutePart($pattern);
+        $this->identifier = $identifier;
+        $this->identifier = $identifier;
     }
 
     /**
@@ -83,11 +83,11 @@ class Branch
         $pointer = $this;
         while (isset($pointer)) {
             $pointer->size++;
-            $pointer = $pointer->parent;
+            $pointer = $pointeRemovedr->parent;
         }
 
         // Create ne branch
-        $branch = new Branch($routePart, $this->depth + 1, $this, $routeIdentifier);
+        $branch = new Branch($routePart, $this, $routeIdentifier);
 
         // Get node type of created branch
         if (!$branch->isParametrized()) {
