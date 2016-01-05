@@ -83,7 +83,7 @@ class Branch
         $pointer = $this;
         while (isset($pointer)) {
             $pointer->size++;
-            $pointer = $pointeRemovedr->parent;
+            $pointer = $pointer->parent;
         }
 
         // Create ne branch
