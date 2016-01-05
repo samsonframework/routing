@@ -16,6 +16,9 @@ use samsonframework\routing\exception\FailedLogicCreation;
  */
 class Core
 {
+    /** Generic name of routing logic function */
+    const ROUTING_LOGIC_FUNCTION = '__router';
+
     /** @var RouteCollection Collection of all application routes */
     protected $routes = array();
 
@@ -62,6 +65,6 @@ class Core
     public function dispatch($path, $method)
     {
         // Perform routing logic
-        return __router($path, $method);
+        return call_user_func(self::ROUTING_LOGIC_FUNCTION, $path, $method);
     }
 }

@@ -7,6 +7,7 @@
  */
 namespace samsonframework\routing\generator;
 
+use samsonframework\routing\Core;
 use samsonframework\routing\Route;
 use samsonframework\routing\RouteCollection;
 use samsonphp\generator\Generator;
@@ -104,7 +105,7 @@ class Structure
      * @param string $functionName Function name
      * @return string Routing logic function PHP code
      */
-    public function generate($functionName = '__router')
+    public function generate($functionName = Core::ROUTING_LOGIC_FUNCTION)
     {
         $this->generator
             ->defFunction($functionName, array('$path', '$method'))
