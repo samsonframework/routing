@@ -38,24 +38,6 @@ class Core
     }
 
     /**
-     * Parse route parameters received from router logic function.
-     *
-     * @param Route $route Route instance
-     * @param array $receivedParameters Collection of parsed parameters
-     * @return array Collection of route callback needed parameters
-     */
-    protected function parseParameters(Route $route, array $receivedParameters)
-    {
-        // Gather parsed route parameters in correct order
-        $parameters = array();
-        foreach ($route->parameters as $name) {
-            // Add to parameters collection
-            $parameters[] = &$receivedParameters[$name];
-        }
-        return $parameters;
-    }
-
-    /**
      * Dispatch HTTP request into callback.
      *
      * @param string $path HTTP request path
