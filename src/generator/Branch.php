@@ -43,7 +43,7 @@ class Branch
      */
     public function __construct($patterPath, Branch $parent = null, Route $route = null)
     {
-        $this->node = $this->getNodeFromRoutePart($patterPath);
+        $this->node = new Node($patterPath);
         $this->parent = $parent;
 
         if (isset($route)) {
@@ -99,27 +99,11 @@ class Branch
         return $branch;
     }
 
-    /**
-     * Define which node type is this logic branch.
-     *
-     * @param string $routePart Route logic part
-     * @return ParameterNode|TextNode Routing logic node instance
-     */
-    protected function getNodeFromRoutePart($routePart)
-    {
-        // Define route part node type
-        if (preg_match(Route::PARAMETERS_FILTER_PATTERN, $routePart, $matches)) {
-            $filter = &$matches['filter'];
-            return new ParameterNode($matches['name'], $filter);
-        } else {
-            return new TextNode($routePart);
-        }
-    }
 
     /** @return bool True if branch has parameter */
     public function isParametrized()
     {
-        return is_a($this->node, __NAMESPACE__ . '\ParameterNode');
+        return $this->node->parametrized;
     }
 
     /**
@@ -187,9 +171,9 @@ class Branch
             }
             return $condition;
         } elseif (sizeof($this->branches)) {
-            return 'substr('.$currentString . ', '.$offset.', '.strlen($this->node->content).') === \'' . $this->node->content .'\'';
+            return 'substr('.$currentString . ', '.$offset.', '.strlen($this->node->name).') === \'' . $this->node->name .'\'';
         } else { // This is last condition in branch it should match
-            $content = $this->node->content == '/' ? 'false' : '\''.$this->node->content.'\'';
+            $content = $this->node->name == '/' ? 'false' : '\''.$this->node->name.'\'';
             return $currentString . ' === '.$content;
         }
     }
@@ -202,9 +186,7 @@ class Branch
      */
     public function storeMatchedParameter($parametersVariable = '$parameters')
     {
-        if ($this->isParametrized()) {
-            return $parametersVariable.'[\''.$this->node->name.'\'] = $matches[\''.$this->node->name.'\'];';
-        }
+        return $parametersVariable.'[\''.$this->node->name.'\'] = $matches[\''.$this->node->name.'\'];';
     }
 
     /**
@@ -215,11 +197,8 @@ class Branch
      */
     public function returnRouteCode($parametersVariable = '$parameters')
     {
-        if ($this->hasRoute()) {
-            return 'return array(\'' . $this->identifier . '\', '.$parametersVariable.');';
-        }
 
-        return '';
+        return 'return array(\'' . $this->identifier . '\', '.$parametersVariable.');';
     }
 
     /**
@@ -234,7 +213,7 @@ class Branch
             // Just remove matched from the string
             return 'substr('.$currentString.', strlen($parameters[\''.$this->node->name.'\']) + 1)';
         } else {
-            return 'substr('.$currentString.', '.(strlen($this->node->content) + 1).')';
+            return 'substr('.$currentString.', '.(strlen($this->node->name) + 1).')';
         }
     }
 }
