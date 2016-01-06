@@ -57,6 +57,9 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $routes['entity-by-id-form'] = new Route('/{entity}/{id}/form', array($this, 'entityWithIDFormCallback'));
         $routes['entity-by-id-form-test'] = new Route('/{id}/test/{page:\d+}', array($this, 'entityWithIDFormCallback'));
         $routes['two-params'] = new Route('/{num}/{page:\d+}', array($this, 'entityWithIDFormCallback'));
+        $routes['user-by-id-node'] = new Route('/user/{id}/n"$ode', array($this, 'userWithIDFormCallback'));
+        $routes['user-by-id-node-with-id'] = new Route('/user/{id}/n"$ode/{param}', array($this, 'userWithIDFormCallback'));
+        $routes['user-with-empty'] = new Route('/user/{id}/get', array($this, 'userWithIDCallback'));
 
         $generator = new Structure($routes, new \samsonphp\generator\Generator());
         $routerLogicFunction = '__router'.rand(0, 1000);
@@ -120,5 +123,15 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
 
         $result = $routerLogicFunction('/user', Route::METHOD_GET);
         $this->assertEquals('user-home-without-slash', $result[0]);
+
+        $result = $routerLogicFunction('/user/123/n"$ode', Route::METHOD_GET);
+        $this->assertEquals('user-by-id-node', $result[0]);
+
+        $result = $routerLogicFunction('/user/123/n"$ode/321', Route::METHOD_GET);
+        $this->assertEquals('user-by-id-node-with-id', $result[0]);
+
+        // TODO Fixed this
+        //$result = $routerLogicFunction('/user//get', Route::METHOD_GET);
+        //$this->assertEquals('user-with-empty', $result[0]);
     }
 }
