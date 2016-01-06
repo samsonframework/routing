@@ -16,7 +16,7 @@ use samsonframework\routing\Route;
  */
 class Branch
 {
-    /** @var Branch[] */
+    /** @var Branch[string] */
     public $branches = array();
 
     /** @var Node */
