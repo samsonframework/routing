@@ -115,12 +115,14 @@ class Branch
      */
     protected function sorter(Branch $aBranch, Branch $bBranch)
     {
-        // Define if some of the branches if parametrized
+        // Give priority to branch that is not parametrized
         if (!$aBranch->isParametrized() && $bBranch->isParametrized()) {
             return -1;
         } elseif ($aBranch->isParametrized() && !$bBranch->isParametrized()) {
             return 1;
         } elseif ($aBranch->isParametrized() && $bBranch->isParametrized()) {
+            // Both branches have parameters
+            // Give priority to parametrized branch which has regular expression
             if (isset($aBranch->node->regexp{1}) && !isset($bBranch->node->regexp{1})) {
                 return -1;
             } elseif (!isset($aBranch->node->regexp{1}) && isset($bBranch->node->regexp{1})) {
@@ -163,13 +165,10 @@ class Branch
         if ($this->isParametrized()) {
             // Use default parameter filter
             $filter = '^'.(isset($this->node->regexp{1}) ? $this->node->regexp : '[^\/]+');
+            // If this is last parameter in logic force it to end with its pattern
+            $filter = sizeof($this->branches) ? $filter : $filter.'$';
             // Generate regular expression matching condition
-            if (sizeof($this->branches)) {
-                $condition = 'preg_match(\'/(?<' . $this->node->name . '>' . $filter . ')/i\', ' . $currentString . ', $matches)';
-            } else {
-                $condition = 'preg_match(\'/(?<' . $this->node->name . '>' . $filter . '$)/i\', ' . $currentString . ', $matches)';
-            }
-            return $condition;
+            return 'preg_match(\'/(?<' . $this->node->name . '>' . $filter . ')/i\', ' . $currentString . ', $matches)';
         } elseif (sizeof($this->branches)) {
             return 'substr('.$currentString . ', '.$offset.', '.strlen($this->node->name).') === \'' . $this->node->name .'\'';
         } else { // This is last condition in branch it should match
