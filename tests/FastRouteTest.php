@@ -105,7 +105,7 @@ class FastRouteTest extends \PHPUnit_Framework_TestCase
             }
         }
 
-        echo 'On '.$iterationsCount.' iterations SamsonFramework\routing was faster '.$score.' times '.
+        echo 'On '.sizeof($routeArray).' routes and '.$iterationsCount.' iterations SamsonFramework\routing was faster '.$score.' times '.
             'opposite to nikic\FastRoute '.$score2.' times, which is '.number_format($score/$score2, 1).' times faster.';
     }
 }
