@@ -94,8 +94,14 @@ class FastRouteTest extends \PHPUnit_Framework_TestCase
         $score = 0;
         $score2 = 0;
 
+        $compareResults = [];
+
         foreach ($elapsedNikic as $step => $iterations) {
+            $compareResults['nikic'][$step] = 0;
+            $compareResults['samson'][$step] = 0;
             for ($i = 0; $i < $iterationsCount; $i++) {
+                $compareResults['nikic'][$step] += $elapsedNikic[$step][$i];
+                $compareResults['samson'][$step] += $elapsedSamson[$step][$i];
                 // Compare if nikic elapsed more time on this iteration for this route
                 if ($elapsedNikic[$step][$i] > $elapsedSamson[$step][$i]) {
                     $score++;
@@ -103,9 +109,22 @@ class FastRouteTest extends \PHPUnit_Framework_TestCase
                     $score2++;
                 }
             }
+            $compareResults['nikic'][$step] = number_format($compareResults['nikic'][$step] / $iterationsCount, 5);
+            $compareResults['samson'][$step] = number_format($compareResults['samson'][$step] / $iterationsCount, 5);
         }
 
+        echo "\n".'Average dispatching results:'."\n";
+        foreach ($compareResults['samson'] as $step => $average) {
+            echo 'Dispatching "'.$step.'" with average '.$average."\n";
+        }
+        echo "======================="."\n";
+        foreach ($compareResults['nikic'] as $step => $average) {
+            echo 'Dispatching "'.$step.'" with average '.$average."\n";
+        }
+
+        echo "\n".'Summary:'."\n";
+
         echo 'On '.sizeof($routeArray).' routes and '.$iterationsCount.' iterations SamsonFramework\routing was faster '.$score.' times '.
-            'opposite to nikic\FastRoute '.$score2.' times, which is '.number_format($score/$score2, 1).' times faster.';
+            "\n".'opposite to nikic\FastRoute '.$score2.' times, which is '.number_format($score/$score2, 1).' times faster.';
     }
 }
