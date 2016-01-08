@@ -31,6 +31,9 @@ class Branch
     /** @var int Total branch length */
     protected $size = 0;
 
+    /** @var  string Branch callback */
+    protected $callback;
+
     /**
      * Branch constructor.
      *
@@ -45,7 +48,11 @@ class Branch
 
         if (isset($route)) {
             $this->identifier = $route->identifier;
-            $this->fullPath = $route->pattern;
+
+            // Convert callable to string if passed
+            $this->callback = is_array($route->callback)
+                ? get_class($route->callback[0]) . '#' . $route->callback[1]
+                : $route->callback;
         }
     }
 
@@ -154,7 +161,7 @@ class Branch
      */
     public function returnRouteCode($parametersVariable = '$parameters')
     {
-        return 'return array(\'' . $this->identifier . '\', ' . $parametersVariable . ');';
+        return 'return array(\'' . $this->identifier . '\', ' . $parametersVariable . ', \'' . $this->callback . '\');';
     }
 
     /**
