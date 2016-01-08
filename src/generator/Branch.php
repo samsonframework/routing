@@ -86,65 +86,7 @@ class Branch
         }
 
         // Create ne branch
-        $branch = new Branch($routePart, $this, $route);
-
-        // Get node type of created branch
-        if (!$branch->isParametrized()) {
-            // Add new branch to the beginning of collection
-            $this->branches = array_merge(array($routePart => $branch), $this->branches);
-        } else { // Add new branch to the end of collection
-            $this->branches[$routePart] = $branch;
-        }
-
-        return $branch;
-    }
-
-
-    /** @return bool True if branch has parameter */
-    public function isParametrized()
-    {
-        return $this->node->parametrized;
-    }
-
-    /**
-     * Compare two branch and define which has greater priority.
-     *
-     * @param Branch $aBranch
-     * @param Branch $bBranch
-     * @return int Comparison result
-     */
-    protected function sorter(Branch $aBranch, Branch $bBranch)
-    {
-        // Give priority to branch that is not parametrized
-        if (!$aBranch->isParametrized() && $bBranch->isParametrized()) {
-            return -1;
-        } elseif ($aBranch->isParametrized() && !$bBranch->isParametrized()) {
-            return 1;
-        } elseif ($aBranch->isParametrized() && $bBranch->isParametrized()) {
-            // Both branches have parameters
-            // Give priority to parametrized branch which has regular expression
-            if (isset($aBranch->node->regexp{1}) && !isset($bBranch->node->regexp{1})) {
-                return -1;
-            } elseif (!isset($aBranch->node->regexp{1}) && isset($bBranch->node->regexp{1})) {
-                return 1;
-            }
-        } else { // Both branches are not parametrized
-            /**
-             * Rule #10
-             * Not parametrized routes with longer pattern has higher priority.
-             */
-            if (strlen($aBranch->node->name) > strlen($bBranch->node->name)) {
-                return -1;
-            } elseif (strlen($aBranch->node->name) < strlen($bBranch->node->name)) {
-                return 1;
-            } else {
-                /**
-                 * Rule #11
-                 * When we have two length-equal not parametrized branches "deeper" branch has priority
-                 */
-                return $aBranch->size < $bBranch->size ? 1 : -1;
-            }
-        }
+        return $this->branches[$routePart] = new Branch($routePart, $this, $route);
     }
 
     /**
@@ -177,16 +119,16 @@ class Branch
     {
         if ($this->isParametrized()) {
             // Use default parameter filter
-            $filter = '^'.(isset($this->node->regexp{1}) ? $this->node->regexp : '[^\/]+');
+            $filter = '^' . (isset($this->node->regexp{1}) ? $this->node->regexp : '[^\/]+');
             // If this is last parameter in logic force it to end with its pattern
-            $filter = sizeof($this->branches) ? $filter : $filter.'$';
+            $filter = sizeof($this->branches) ? $filter : $filter . '$';
             // Generate regular expression matching condition
             return 'preg_match(\'/(?<' . $this->node->name . '>' . $filter . ')/i\', ' . $currentString . ', $matches)';
         } elseif (sizeof($this->branches)) {
-            return 'substr('.$currentString . ', '.$offset.', '.strlen($this->node->name).') === \'' . $this->node->name .'\'';
+            return 'substr(' . $currentString . ', ' . $offset . ', ' . strlen($this->node->name) . ') === \'' . $this->node->name . '\'';
         } else { // This is last condition in branch it should match
-            $content = $this->node->name == '/' ? 'false' : '\''.$this->node->name.'\'';
-            return $currentString . ' === '.$content;
+            $content = $this->node->name == '/' ? 'false' : '\'' . $this->node->name . '\'';
+            return $currentString . ' === ' . $content;
         }
     }
 
@@ -198,7 +140,7 @@ class Branch
      */
     public function storeMatchedParameter($parametersVariable = '$parameters')
     {
-        return $parametersVariable.'[\''.$this->node->name.'\'] = $matches[\''.$this->node->name.'\'];';
+        return $parametersVariable . '[\'' . $this->node->name . '\'] = $matches[\'' . $this->node->name . '\'];';
     }
 
     /**
@@ -210,7 +152,7 @@ class Branch
     public function returnRouteCode($parametersVariable = '$parameters')
     {
 
-        return 'return array(\'' . $this->identifier . '\', '.$parametersVariable.');';
+        return 'return array(\'' . $this->identifier . '\', ' . $parametersVariable . ');';
     }
 
     /**
@@ -223,9 +165,64 @@ class Branch
     {
         if ($this->isParametrized()) {
             // Just remove matched from the string
-            return 'substr('.$currentString.', strlen($parameters[\''.$this->node->name.'\']) + 1)';
+            return 'substr(' . $currentString . ', strlen($parameters[\'' . $this->node->name . '\']) + 1)';
         } else {
-            return 'substr('.$currentString.', '.(strlen($this->node->name) + 1).')';
+            return 'substr(' . $currentString . ', ' . (strlen($this->node->name) + 1) . ')';
         }
+    }
+
+    /**
+     * Compare two branch and define which has greater priority.
+     *
+     * @param Branch $aBranch
+     * @param Branch $bBranch
+     * @return int Comparison result
+     */
+    protected function sorter(Branch $aBranch, Branch $bBranch)
+    {
+        // Give priority to branch that is not parametrized
+        /**
+         * Rule #2
+         * Parametrized branch always has lower priority then textual branch.
+         */
+        if (!$aBranch->isParametrized() && $bBranch->isParametrized()) {
+            return -1;
+        } elseif ($aBranch->isParametrized() && !$bBranch->isParametrized()) {
+            return 1;
+        } elseif ($aBranch->isParametrized() && $bBranch->isParametrized()) {
+            /**
+             * Rule #3
+             * If both branches are parametrized then branch with setted regexp filter has higher priority.
+             */
+            if (isset($aBranch->node->regexp{1}) && !isset($bBranch->node->regexp{1})) {
+                return -1;
+            } elseif (!isset($aBranch->node->regexp{1}) && isset($bBranch->node->regexp{1})) {
+                return 1;
+            }
+            /** TODO: We need to invent a way to compare regexp filter to define who is "wider" */
+        } else { // Both branches are not parametrized
+            /**
+             * Rule #10
+             * If both branches are not parametrized then branch with longer pattern string has higher priority.
+             */
+            if (strlen($aBranch->node->name) > strlen($bBranch->node->name)) {
+                return -1;
+            } elseif (strlen($aBranch->node->name) < strlen($bBranch->node->name)) {
+                return 1;
+            } else {
+                /**
+                 * Rule #11
+                 * If both branches are not parametrized and they have two length-equal string patterns then not
+                 * "deeper" branch has priority.
+                 */
+                return $aBranch->size < $bBranch->size ? 1 : -1;
+            }
+        }
+    }
+
+    /** @return bool True if branch has parameter */
+    public function isParametrized()
+    {
+        return $this->node->parametrized;
     }
 }
