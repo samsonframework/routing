@@ -128,10 +128,23 @@ class Branch
             } elseif (!isset($aBranch->node->regexp{1}) && isset($bBranch->node->regexp{1})) {
                 return 1;
             }
+        } else { // Both branches are not parametrized
+            /**
+             * Rule #10
+             * Not parametrized routes with longer pattern has higher priority.
+             */
+            if (strlen($aBranch->node->name) > strlen($bBranch->node->name)) {
+                return -1;
+            } elseif (strlen($aBranch->node->name) < strlen($bBranch->node->name)) {
+                return 1;
+            } else {
+                /**
+                 * Rule #11
+                 * When we have two length-equal not parametrized branches "deeper" branch has priority
+                 */
+                return $aBranch->size < $bBranch->size ? 1 : -1;
+            }
         }
-
-        // Return branch size comparison, longer branches should go on top
-        return $aBranch->size < $bBranch->size ? 1 : -1;
     }
 
     /**
