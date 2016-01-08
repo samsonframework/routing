@@ -17,26 +17,26 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
     public function testGeneration()
     {
         // Create routes descriptions with identifiers
-        $routeArray = [
-            'main-page'                     => ['GET', '/', '/'],
-            'inner-page'                    => ['GET','/{page}', '/text-page'],
-            'user-home'                     => ['GET','/user/', '/user/'],
-            'user-home-without-slash'       => ['GET','/user'],
-            'test-two-similar-fixed'        => ['GET','/userlist'],
-            'user-winners-slash'            => ['GET','/user/winners/'],
-            'user-by-id'                    => ['GET','/user/{id}', '/user/123'],
-            'user-by-gender-age'            => ['GET','/user/{gender:male|female}/{age}', '/user/male/19d'],
-            'user-by-gender-age-filtered'   => ['GET','/user/{gender:male|female}/{age:[0-9]+}', '/user/female/8'],
-            'user-by-id-form'               => ['GET','/user/{id}/form', '/user/123/form'],
-            'user-by-id-friends'            => ['GET','/user/{id}/friends', '/user/123/friends'],
-            'user-by-id-friends-with-id'    => ['GET','/user/{id}/friends/{groupid}', '/user/123/friends/1'],
-            'entity-by-id-form'             => ['GET','/{entity}/{id}/form'],
-            'entity-by-id-form-test'        => ['GET','/{id}/test/{page:\d+}'],
-            'two-params'                    => ['GET','/{num}/{page:\d+}'],
-            'user-by-id-node'               => ['GET','/user/{id}/n"$ode'],
-            'user-by-id-node-with-id'       => ['GET','/user/{id}/n"$ode/{param}'],
-            'user-with-empty'               => ['GET','/user/{id}/get', '/user/123/get']
-        ];
+        $routeArray = array(
+            'main-page' => array('GET', '/', '/'),
+            'inner-page' => array('GET', '/{page}', '/text-page'),
+            'user-home' => array('GET', '/user/', '/user/'),
+            'user-home-without-slash' => array('GET', '/user'),
+            'test-two-similar-fixed' => array('GET', '/userlist'),
+            'user-winners-slash' => array('GET', '/user/winners/'),
+            'user-by-id' => array('GET', '/user/{id}', '/user/123'),
+            'user-by-gender-age' => array('GET', '/user/{gender:male|female}/{age}', '/user/male/19d'),
+            'user-by-gender-age-filtered' => array('GET', '/user/{gender:male|female}/{age:[0-9]+}', '/user/female/8'),
+            'user-by-id-form' => array('GET', '/user/{id}/form', '/user/123/form'),
+            'user-by-id-friends' => array('GET', '/user/{id}/friends', '/user/123/friends'),
+            'user-by-id-friends-with-id' => array('GET', '/user/{id}/friends/{groupid}', '/user/123/friends/1'),
+            'entity-by-id-form' => array('GET', '/{entity}/{id}/form'),
+            'entity-by-id-form-test' => array('GET', '/{id}/test/{page:\d+}'),
+            'two-params' => array('GET', '/{num}/{page:\d+}'),
+            'user-by-id-node' => array('GET', '/user/{id}/n"$ode'),
+            'user-by-id-node-with-id' => array('GET', '/user/{id}/n"$ode/{param}'),
+            'user-with-empty' => array('GET', '/user/{id}/get', '/user/123/get')
+        );
 
         // Create routes collection
         $routes = new RouteCollection();
