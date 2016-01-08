@@ -116,8 +116,8 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $result = $routerLogicFunction('/user/123/n"$ode/321', Route::METHOD_GET);
         $this->assertEquals('user-by-id-node-with-id', $result[0]);
 
-        // TODO Fixed this
-        //$result = $routerLogicFunction('/user//get', Route::METHOD_GET);
-        //$this->assertEquals('user-with-empty', $result[0]);
+        // Empty parameters are resolved to null route
+        $result = $routerLogicFunction('/user//get', Route::METHOD_GET);
+        $this->assertEquals(null, $result[0]);
     }
 }

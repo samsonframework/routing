@@ -131,6 +131,36 @@ class Structure
     }
 
     /**
+     * Generate routing conditions logic.
+     *
+     * @param Branch $parent Current branch in resursion
+     * @param string $pathValue Current $path value in routing logic
+     * @param bool $conditionStarted Flag that condition started
+     */
+    protected function innerGenerate2(Branch $parent, $pathValue = '$path', $conditionStarted = false)
+    {
+        // Iterate inner branches
+        foreach ($parent->branches as $branch) {
+            $this->generatorBranchesLoop($branch, $conditionStarted, $pathValue);
+        }
+
+        // Return route if branch has it
+        if ($parent->hasRoute()) {
+            // If we had other inner branch for this parent branch - we need to add else
+            if ($conditionStarted) {
+                $this->generator->defElseIfCondition('strlen(' . $pathValue . ') === 0');
+            }
+
+            $this->generator->newLine($parent->returnRouteCode());
+        }
+
+        // Close first condition
+        if ($conditionStarted) {
+            $this->generator->endIfCondition();
+        }
+    }
+
+    /**
      * Generator inner branches loop handler.
      *
      * @param Branch $branch Branch for looping its inner branches
@@ -175,35 +205,5 @@ class Structure
         // We should subtract part of $path var to remove this parameter
         // Go deeper in recursion
         $this->innerGenerate2($branch, $pathVariable, false);
-    }
-
-    /**
-     * Generate routing conditions logic.
-     *
-     * @param Branch $parent Current branch in resursion
-     * @param string $pathValue Current $path value in routing logic
-     * @param bool $conditionStarted Flag that condition started
-     */
-    protected function innerGenerate2(Branch $parent, $pathValue = '$path', $conditionStarted = false)
-    {
-        // Iterate inner branches
-        foreach ($parent->branches as $branch) {
-            $this->generatorBranchesLoop($branch, $conditionStarted, $pathValue);
-        }
-
-        // Return route if branch has it
-        if ($parent->hasRoute()) {
-            // If we had other inner branch for this parent branch - we need to add else
-            if ($conditionStarted) {
-                $this->generator->defElseCondition();
-            }
-
-            $this->generator->newLine($parent->returnRouteCode());
-        }
-
-        // Close first condition
-        if ($conditionStarted) {
-            $this->generator->endIfCondition();
-        }
     }
 }
