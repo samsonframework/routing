@@ -25,9 +25,6 @@ class Branch
     /** @var string Route identifier */
     public $identifier;
 
-    /** @var string Route full path */
-    public $fullPath;
-
     /** @var Branch Pointer to parent element */
     protected $parent;
 
