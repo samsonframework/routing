@@ -96,7 +96,7 @@ class Structure
                     if (isset($matchedRoute)) {
                         // Store route identifier
                         $currentBranch->identifier = $matchedRoute->identifier;
-                        $currentBranch->fullPath = $matchedRoute->pattern;
+                        $currentBranch->setCallback($matchedRoute->callback);
                     }
                 }
             }

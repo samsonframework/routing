@@ -48,12 +48,21 @@ class Branch
 
         if (isset($route)) {
             $this->identifier = $route->identifier;
-
-            // Convert callable to string if passed
-            $this->callback = is_array($route->callback)
-                ? get_class($route->callback[0]) . '#' . $route->callback[1]
-                : $route->callback;
+            $this->setCallback($route->callback);
         }
+    }
+
+    /**
+     * Set branch callback value.
+     *
+     * @param callable $callback
+     */
+    public function setCallback($callback)
+    {
+        // Convert callable to string if passed
+        $this->callback = is_array($callback)
+            ? get_class($callback[0]) . '#' . $callback[1]
+            : $callback;
     }
 
     /**
