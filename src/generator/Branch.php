@@ -132,6 +132,12 @@ class Branch
         }
     }
 
+    /** @return bool True if branch has parameter */
+    public function isParametrized()
+    {
+        return $this->node->parametrized;
+    }
+
     /**
      * Generate code for storing branch matched parameter.
      *
@@ -151,7 +157,6 @@ class Branch
      */
     public function returnRouteCode($parametersVariable = '$parameters')
     {
-
         return 'return array(\'' . $this->identifier . '\', ' . $parametersVariable . ');';
     }
 
@@ -180,9 +185,8 @@ class Branch
      */
     protected function sorter(Branch $aBranch, Branch $bBranch)
     {
-        // Give priority to branch that is not parametrized
         /**
-         * Rule #2
+         * Rule #1
          * Parametrized branch always has lower priority then textual branch.
          */
         if (!$aBranch->isParametrized() && $bBranch->isParametrized()) {
@@ -191,7 +195,7 @@ class Branch
             return 1;
         } elseif ($aBranch->isParametrized() && $bBranch->isParametrized()) {
             /**
-             * Rule #3
+             * Rule #2
              * If both branches are parametrized then branch with setted regexp filter has higher priority.
              */
             if (isset($aBranch->node->regexp{1}) && !isset($bBranch->node->regexp{1})) {
@@ -202,7 +206,7 @@ class Branch
             /** TODO: We need to invent a way to compare regexp filter to define who is "wider" */
         } else { // Both branches are not parametrized
             /**
-             * Rule #10
+             * Rule #3
              * If both branches are not parametrized then branch with longer pattern string has higher priority.
              */
             if (strlen($aBranch->node->name) > strlen($bBranch->node->name)) {
@@ -211,18 +215,12 @@ class Branch
                 return 1;
             } else {
                 /**
-                 * Rule #11
+                 * Rule #4
                  * If both branches are not parametrized and they have two length-equal string patterns then not
                  * "deeper" branch has priority.
                  */
                 return $aBranch->size < $bBranch->size ? 1 : -1;
             }
         }
-    }
-
-    /** @return bool True if branch has parameter */
-    public function isParametrized()
-    {
-        return $this->node->parametrized;
     }
 }
