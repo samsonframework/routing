@@ -139,19 +139,22 @@ class Structure
      */
     protected function innerGenerate2(Branch $parent, $pathValue = '$path', $conditionStarted = false)
     {
-        // Iterate inner branches
-        foreach ($parent->branches as $branch) {
-            $this->generatorBranchesLoop($branch, $conditionStarted, $pathValue);
-        }
-
-        // Return route if branch has it
+        /**
+         *
+         */
         if ($parent->hasRoute()) {
-            // If we had other inner branch for this parent branch - we need to add else
-            if ($conditionStarted) {
-                $this->generator->defElseIfCondition('strlen(' . $pathValue . ') === 0');
+            // Generate condition if we have inner branches
+            if (sizeof($parent->branches)) {
+                $this->generator->defIfCondition('' . $pathValue . ' === false');
+                $conditionStarted = true;
             }
 
             $this->generator->newLine($parent->returnRouteCode());
+        }
+
+        // Iterate inner branches
+        foreach ($parent->branches as $branch) {
+            $this->generatorBranchesLoop($branch, $conditionStarted, $pathValue);
         }
 
         // Close first condition
