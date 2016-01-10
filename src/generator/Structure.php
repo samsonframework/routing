@@ -133,22 +133,20 @@ class Structure
     /**
      * Generate routing conditions logic.
      *
-     * @param Branch $parent Current branch in resursion
+     * @param Branch $parent Current branch in recursion
      * @param string $pathValue Current $path value in routing logic
      * @param bool $conditionStarted Flag that condition started
      */
     protected function innerGenerate2(Branch $parent, $pathValue = '$path', $conditionStarted = false)
     {
-        /**
-         *
-         */
+        // If this branch has route
         if ($parent->hasRoute()) {
             // Generate condition if we have inner branches
             if (sizeof($parent->branches)) {
                 $this->generator->defIfCondition('' . $pathValue . ' === false');
                 $conditionStarted = true;
             }
-
+            // Close logic branch if matches
             $this->generator->newLine($parent->returnRouteCode());
         }
 
