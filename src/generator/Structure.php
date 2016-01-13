@@ -117,8 +117,6 @@ class Structure
         $this->generator
             ->defFunction($functionName, array('$path', '$method'))
             ->defVar('$matches', array())
-            // Remove first slash and last slash, add method as first, remove GET parameters
-            ->newLine('$path = strtok(rtrim($method.\'/\'.ltrim($path, \'/\'),\'/\'),\'?\');')
             ->defVar('$parameters', array())
         ;
 
