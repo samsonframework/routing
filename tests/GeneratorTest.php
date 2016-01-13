@@ -7,10 +7,18 @@
  */
 namespace samsonframework\routing\tests;
 
+use samsonframework\routing\Core;
 use samsonframework\routing\Generator;
 use samsonframework\routing\generator\Structure;
 use samsonframework\routing\Route;
 use samsonframework\routing\RouteCollection;
+
+/** Routing function wrapper */
+function routerLogic($path, $method, $functionName = Core::ROUTING_LOGIC_FUNCTION)
+{
+    $path = rtrim(strtok($method.'/'.ltrim($path, '/'), '?'), '/');
+    return $functionName($path, $method);
+}
 
 class GeneratorTest extends \PHPUnit_Framework_TestCase
 {
@@ -45,8 +53,8 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         }
 
         $generator = new Structure($routes, new \samsonphp\generator\Generator());
-        $routerLogicFunction = '__router'.rand(0, 1000);
-        $routerLogic = $generator->generate($routerLogicFunction);
+        $routerLogic = $generator->generate();
+        $routerLogicFunction = 'routerLogic';
 
         // Create real file for debugging
         file_put_contents(__DIR__.'/testLogic.php', '<?php '."\n".$routerLogic);
