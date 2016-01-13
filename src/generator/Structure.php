@@ -25,12 +25,6 @@ use samsonphp\generator\Generator;
  */
 
 /**
- * TODO: #1
- * We need to remove GET from logic branches and create if condition for method
- * separately to increase performance.
- */
-
-/**
  * TODO: #2
  * We need to invent a way to put parent branches with routes to one level higher in
  * conditions logic tree to speed up their matching. For example we have:
