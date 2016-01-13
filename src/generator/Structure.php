@@ -131,10 +131,53 @@ class Structure
             }
         }
 
+        // Optimize each top level branch
+        foreach ($this->httpMethods as $method) {
+            foreach ($this->logic->branches[$method]->branches as $branch) {
+                $this->optimizeBranches($branch);
+            }
+        }
+
         // Sort branches in correct order following routing logic rules
         $this->logic->sort();
     }
 
+    /**
+     * Branch optimization:
+     * 1.Method searches for branch only with one child and combine their
+     * patterns, this decreases logic branches and path cutting in final
+     * routing logic function.
+     *
+     * @param Branch $parent
+     */
+    protected function optimizeBranches(Branch &$parent)
+    {
+        if (!$parent->hasRoute() && sizeof($parent->branches) === 1) {
+            /** @var Branch $branch */
+            $branch = array_shift($parent->branches);
+
+            // Go deeper in recursion for nested branches
+            $this->optimizeBranches($branch);
+
+            // Add inner branch node to current branch
+            $parent->node = array_merge($parent->node, $branch->node);
+
+            if (isset($branch->identifier{1})) {
+                $parent->identifier = $branch->identifier;
+                $parent->callback = $branch->callback;
+            }
+
+            // We are out from recursion - remove this branch
+            unset($parent->branches[$branch->patternPath]);
+        }
+    }
+
+    /**
+     * HTTP method routing logic condition generator.
+     *
+     * @param string $method HTPP method name
+     * @param string $conditionFunction PHP Code generator condition function name
+     */
     protected function buildRoutesByMethod($method, $conditionFunction = 'defIfCondition')
     {
         $this->generator->$conditionFunction('$method === "'.$method.'"');

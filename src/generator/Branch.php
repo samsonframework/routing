@@ -19,20 +19,23 @@ class Branch
     /** @var Branch[string] */
     public $branches = array();
 
-    /** @var Node */
+    /** @var Node[string] Collection of route nodes */
     public $node;
 
     /** @var string Route identifier */
     public $identifier;
 
+    /** @var string branch description */
+    public $patternPath;
+
     /** @var Branch Pointer to parent element */
-    protected $parent;
+    public $parent;
 
     /** @var int Total branch length */
-    protected $size = 0;
+    public $size = 0;
 
     /** @var  string Branch callback */
-    protected $callback;
+    public $callback;
 
     /**
      * Branch constructor.
@@ -43,8 +46,9 @@ class Branch
      */
     public function __construct($patterPath, Branch $parent = null, Route $route = null)
     {
-        $this->node = new Node($patterPath);
+        $this->node[] = new Node($patterPath);
         $this->parent = $parent;
+        $this->patternPath = $patterPath;
 
         if (isset($route)) {
             $this->identifier = $route->identifier;
@@ -130,25 +134,68 @@ class Branch
      */
     public function toLogicConditionCode($currentString = '$path', $offset = 0)
     {
+        $nodeValue = $this->nodeValue();
         if ($this->isParametrized()) {
-            // Use default parameter filter
-            $filter = '^' . (isset($this->node->regexp{1}) ? $this->node->regexp : '[^\/]+');
+            $regularExpression = '';
+            /** @var Node $node Iterate all nodes and gather them in "big" regular expression */
+            foreach ($this->node as $node) {
+                if ($node->parametrized) {
+                    // Use default parameter filter
+                    $filter = (isset($node->regexp{1}) ? $node->regexp : '[^\/]+');
+                    // Add regular expression node
+                    $regularExpression[] = '(?<' . $node->name . '>'.$filter.')';
+                } else {
+                    $regularExpression[] = $node->name;
+                }
+            }
             // If this is last parameter in logic force it to end with its pattern
-            $filter = sizeof($this->branches) ? $filter : $filter . '$';
+            $regularExpression = sizeof($this->branches) ? implode('\/', $regularExpression) : implode('\/', $regularExpression) . '$';
+
             // Generate regular expression matching condition
-            return 'preg_match(\'/(?<' . $this->node->name . '>' . $filter . ')/i\', ' . $currentString . ', $matches)';
+            return 'preg_match(\'/^'.$regularExpression.'/i\', ' . $currentString . ', $matches)';
         } elseif (sizeof($this->branches)) {
-            return 'substr(' . $currentString . ', ' . $offset . ', ' . strlen($this->node->name) . ') === \'' . $this->node->name . '\'';
+            return 'substr(' . $currentString . ', ' . $offset . ', ' . strlen($nodeValue) . ') === \'' . $nodeValue . '\'';
         } else { // This is last condition in branch it should match
-            $content = $this->node->name == '/' ? '\'\'' : '\'' . $this->node->name . '\'';
+            $content = $nodeValue == '/' ? '\'\'' : '\'' . $nodeValue . '\'';
             return $currentString . ' === ' . $content;
         }
     }
 
-    /** @return bool True if branch has parameter */
+    /** @return bool True if branch has parameterized node */
     public function isParametrized()
     {
-        return $this->node->parametrized;
+        /** @var Node $node */
+        foreach ($this->node as $node) {
+            if ($node->parametrized) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** @return string Node regular expression representation */
+    public function nodeRegExp()
+    {
+        /** @var Node $node */
+        $return = array();
+        foreach ($this->node as $node) {
+            $return[] = $node->regexp;
+        }
+
+        return implode('/', $return);
+    }
+
+    /** @return string Node string representation */
+    public function nodeValue()
+    {
+        /** @var Node $node */
+        $return = array();
+        foreach ($this->node as $node) {
+            $return[] = $node->name;
+        }
+
+        return implode('/', $return);
     }
 
     /**
@@ -159,7 +206,13 @@ class Branch
      */
     public function storeMatchedParameter($parametersVariable = '$parameters')
     {
-        return $parametersVariable . '[\'' . $this->node->name . '\'] = $matches[\'' . $this->node->name . '\'];';
+        $return = '';
+        foreach ($this->node as $node) {
+            if ($node->parametrized) {
+                $return .= $parametersVariable . '[\'' . $node->name . '\'] = $matches[\'' . $node->name . '\'];';
+            }
+        }
+        return $return;
     }
 
     /**
@@ -183,9 +236,9 @@ class Branch
     {
         if ($this->isParametrized()) {
             // Just remove matched from the string
-            return 'substr(' . $currentString . ', strlen($parameters[\'' . $this->node->name . '\']) + 1)';
+            return 'substr(' . $currentString . ', strlen($parameters[\'' . $this->nodeValue() . '\']) + 1)';
         } else {
-            return 'substr(' . $currentString . ', ' . (strlen($this->node->name) + 1) . ')';
+            return 'substr(' . $currentString . ', ' . (strlen($this->nodeValue()) + 1) . ')';
         }
     }
 
@@ -209,12 +262,21 @@ class Branch
         } elseif ($aBranch->isParametrized() && $bBranch->isParametrized()) {
             /**
              * Rule #2
-             * If both branches are parametrized then branch with setted regexp filter has higher priority.
+             * If both branches are parametrized then branch with set regexp filter has higher priority.
              */
-            if (isset($aBranch->node->regexp{1}) && !isset($bBranch->node->regexp{1})) {
+            $aRegExp = $aBranch->nodeRegExp();
+            $bRegExp = $bBranch->nodeRegExp();
+            if (isset($aRegExp{1}) && !isset($bRegExp{1})) {
                 return -1;
-            } elseif (!isset($aBranch->node->regexp{1}) && isset($bBranch->node->regexp{1})) {
+            } elseif (!isset($aRegExp{1}) && isset($bRegExp{1})) {
                 return 1;
+            } else {
+                /**
+                 * Rule #4
+                 * If both branches are parametrized and they have two length-equal string patterns then not
+                 * "deeper" branch has priority.
+                 */
+                return $aBranch->size < $bBranch->size ? 1 : -1;
             }
             /** TODO: We need to invent a way to compare regexp filter to define who is "wider" */
         } else { // Both branches are not parametrized
@@ -222,9 +284,9 @@ class Branch
              * Rule #3
              * If both branches are not parametrized then branch with longer pattern string has higher priority.
              */
-            if (strlen($aBranch->node->name) > strlen($bBranch->node->name)) {
+            if (strlen($aBranch->nodeValue()) > strlen($bBranch->nodeValue())) {
                 return -1;
-            } elseif (strlen($aBranch->node->name) < strlen($bBranch->node->name)) {
+            } elseif (strlen($aBranch->nodeValue()) < strlen($bBranch->nodeValue())) {
                 return 1;
             } else {
                 /**
