@@ -45,7 +45,8 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
             'two-params' => array('GET', '/{num}/{page:\d+}'),
             'user-by-id-node' => array('GET', '/user/{id}/n"$ode'),
             'user-by-id-node-with-id' => array('GET', '/user/{id}/n"$ode/{param}'),
-            'user-with-empty' => array('GET', '/user/{id}/get', '/user/123/get')
+            'user-with-empty' => array('GET', '/user/{id}/get', '/user/123/get'),
+            'user-post-by-id' => array('POST', '/user/{id}/save', '/user/123/get')
         );
 
         // Create routes collection
@@ -129,5 +130,9 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         // Empty parameters are resolved to null route
         $result = $this->routerLogic('/user//get', Route::METHOD_GET);
         $this->assertEquals(null, $result[0]);
+
+        $result = $this->routerLogic('/user/123/save', Route::METHOD_POST);
+        $this->assertEquals('user-post-by-id', $result[0]);
+        $this->assertArrayHasKey('id', $result[1]);
     }
 }

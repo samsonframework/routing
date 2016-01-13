@@ -166,12 +166,15 @@ class Structure
             // Build routes for other methods
             foreach ($this->httpMethods as $method) {
                 // Build routes for first method
-                $this->buildRoutesByMethod($method);
+                $this->buildRoutesByMethod($method, 'defElseIfCondition');
             }
+
+            // Add method not found
+            $this->generator->endIfCondition();
         }
 
         // Add method not found
-        $this->generator->endIfCondition()->newLine('return null;')->endFunction();
+        $this->generator->newLine('return null;')->endFunction();
 
         return $this->generator->flush();
     }
