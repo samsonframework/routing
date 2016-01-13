@@ -14,52 +14,35 @@ use samsonframework\routing\RouteCollection;
 
 class GeneratorTest extends \PHPUnit_Framework_TestCase
 {
-    public function baseCallback()
-    {
-        return __FUNCTION__;
-    }
-
-    public function baseWithPageCallback($page)
-    {
-        return __FUNCTION__;
-    }
-
-    public function userWithIDCallback($id)
-    {
-        return __FUNCTION__;
-    }
-
-    public function userWithIDFormCallback($id)
-    {
-        return array(__FUNCTION__, $id);
-    }
-
-    public function entityWithIDFormCallback($entity, $id)
-    {
-        return __FUNCTION__;
-    }
-
     public function testGeneration()
     {
+        // Create routes descriptions with identifiers
+        $routeArray = array(
+            'main-page' => array('GET', '/', '/'),
+            'inner-page' => array('GET', '/{page}', '/text-page'),
+            'user-home' => array('GET', '/user/', '/user/'),
+            'user-home-without-slash' => array('GET', '/user'),
+            'test-two-similar-fixed' => array('GET', '/userlist'),
+            'user-winners-slash' => array('GET', '/user/winners/'),
+            'user-by-id' => array('GET', '/user/{id}', '/user/123'),
+            'user-by-gender-age' => array('GET', '/user/{gender:male|female}/{age}', '/user/male/19d'),
+            'user-by-gender-age-filtered' => array('GET', '/user/{gender:male|female}/{age:[0-9]+}', '/user/female/8'),
+            'user-by-id-form' => array('GET', '/user/{id}/form', '/user/123/form'),
+            'user-by-id-friends' => array('GET', '/user/{id}/friends', '/user/123/friends'),
+            'user-by-id-friends-with-id' => array('GET', '/user/{id}/friends/{groupid}', '/user/123/friends/1'),
+            'entity-by-id-form' => array('GET', '/{entity}/{id}/form'),
+            'entity-by-id-form-test' => array('GET', '/{id}/test/{page:\d+}'),
+            'two-params' => array('GET', '/{num}/{page:\d+}'),
+            'user-by-id-node' => array('GET', '/user/{id}/n"$ode'),
+            'user-by-id-node-with-id' => array('GET', '/user/{id}/n"$ode/{param}'),
+            'user-with-empty' => array('GET', '/user/{id}/get', '/user/123/get')
+        );
+
+        // Create routes collection
         $routes = new RouteCollection();
-        $routes['main-page'] = new Route('/', array($this, 'baseCallback'));
-        $routes['inner-page'] = new Route('/{page}', array($this, 'baseWithPageCallback'));
-        // This one would be overridden by next route due to automatic slash addition to the end of the route
-        $routes['user-home'] = new Route('/user/', array($this, 'baseCallback'));
-        $routes['user-home-without-slash'] = new Route('/user', array($this, 'baseCallback'));
-        $routes['user-winners-slash'] = new Route('/user/winners/', array($this, 'baseCallback'));
-        $routes['user-by-id'] = new Route('/user/{id}', array($this, 'userWithIDCallback'));
-        $routes['user-by-gender-age'] = new Route('/user/{gender:(male|female)}/{age}', array($this, 'userWithIDCallback'));
-        $routes['user-by-gender-age-filtered'] = new Route('/user/{gender:(male|female)}/{age:[0-9]+}', array($this, 'userWithIDCallback'));
-        $routes['user-by-id-form'] = new Route('/user/{id}/form', array($this, 'userWithIDFormCallback'));
-        $routes['user-by-id-friends'] = new Route('/user/{id}/friends', array($this, 'userWithIDFormCallback'));
-        $routes['user-by-id-friends-with-id'] = new Route('/user/{id}/friends/{groupid}', array($this, 'userWithIDFormCallback'));
-        $routes['entity-by-id-form'] = new Route('/{entity}/{id}/form', array($this, 'entityWithIDFormCallback'));
-        $routes['entity-by-id-form-test'] = new Route('/{id}/test/{page:\d+}', array($this, 'entityWithIDFormCallback'));
-        $routes['two-params'] = new Route('/{num}/{page:\d+}', array($this, 'entityWithIDFormCallback'));
-        $routes['user-by-id-node'] = new Route('/user/{id}/n"$ode', array($this, 'userWithIDFormCallback'));
-        $routes['user-by-id-node-with-id'] = new Route('/user/{id}/n"$ode/{param}', array($this, 'userWithIDFormCallback'));
-        $routes['user-with-empty'] = new Route('/user/{id}/get', array($this, 'userWithIDCallback'));
+        foreach ($routeArray as $identifier => $routeData) {
+            $routes->add(new Route($routeData[1], array($this, 'baseCallback'), $identifier, $routeData[0]));
+        }
 
         $generator = new Structure($routes, new \samsonphp\generator\Generator());
         $routerLogicFunction = '__router'.rand(0, 1000);
@@ -123,6 +106,9 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
 
         $result = $routerLogicFunction('/user', Route::METHOD_GET);
         $this->assertEquals('user-home-without-slash', $result[0]);
+        
+        $result = $routerLogicFunction('/userlist/', Route::METHOD_GET);
+        $this->assertEquals('test-two-similar-fixed', $result[0]);
 
         $result = $routerLogicFunction('/user/123/n"$ode', Route::METHOD_GET);
         $this->assertEquals('user-by-id-node', $result[0]);
@@ -130,8 +116,8 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $result = $routerLogicFunction('/user/123/n"$ode/321', Route::METHOD_GET);
         $this->assertEquals('user-by-id-node-with-id', $result[0]);
 
-        // TODO Fixed this
-        //$result = $routerLogicFunction('/user//get', Route::METHOD_GET);
-        //$this->assertEquals('user-with-empty', $result[0]);
+        // Empty parameters are resolved to null route
+        $result = $routerLogicFunction('/user//get', Route::METHOD_GET);
+        $this->assertEquals(null, $result[0]);
     }
 }

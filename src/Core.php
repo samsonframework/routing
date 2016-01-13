@@ -30,7 +30,7 @@ class Core
      */
     public function __construct(RouteCollection &$routes)
     {
-        if (!function_exists('__router')) {
+        if (!function_exists(self::ROUTING_LOGIC_FUNCTION)) {
             throw new FailedLogicCreation();
         }
 

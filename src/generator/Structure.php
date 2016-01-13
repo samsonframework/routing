@@ -12,7 +12,7 @@ use samsonframework\routing\Route;
 use samsonframework\routing\RouteCollection;
 use samsonphp\generator\Generator;
 
-/**4000 160дол 5900 хирургия 3-5 коронка на имплатне 2700 23-12400 10/15
+/**
  * TODO:
  * We need to invent optimization for single-child branches
  * to make collection of nodes for them or similar and generate
@@ -24,6 +24,11 @@ use samsonphp\generator\Generator;
 /**
  * TODO:
  * We need to add  support for optional parameters.
+ */
+
+/**
+ * TODO:
+ * Refactor toget 10 points %)
  */
 
 /**
@@ -91,7 +96,7 @@ class Structure
                     if (isset($matchedRoute)) {
                         // Store route identifier
                         $currentBranch->identifier = $matchedRoute->identifier;
-                        $currentBranch->fullPath = $matchedRoute->pattern;
+                        $currentBranch->setCallback($matchedRoute->callback);
                     }
                 }
             }
@@ -128,65 +133,78 @@ class Structure
     /**
      * Generate routing conditions logic.
      *
-     * @param Branch $parent Current branch in resursion
+     * @param Branch $parent Current branch in recursion
      * @param string $pathValue Current $path value in routing logic
      * @param bool $conditionStarted Flag that condition started
      */
     protected function innerGenerate2(Branch $parent, $pathValue = '$path', $conditionStarted = false)
     {
-        // Iterate inner branches
-        foreach ($parent->branches as $branch) {
-            // First stage - open condition
-            // If we have started condition branching but this branch has parameters
-            if ($conditionStarted && $branch->isParametrized()) {
-                $this->generator
-                    // Close current condition branching
-                    ->endIfCondition()
-                    // Start new condition
-                    ->defIfCondition($branch->toLogicConditionCode($pathValue));
-            } elseif (!$conditionStarted) { // This is first inner branch
-                // Start new condition
-                $this->generator->defIfCondition($branch->toLogicConditionCode($pathValue));
-                // Set flag that condition has started
+        // If this branch has route
+        if ($parent->hasRoute()) {
+            // Generate condition if we have inner branches
+            if (sizeof($parent->branches)) {
+                $this->generator->defIfCondition('' . $pathValue . ' === false');
                 $conditionStarted = true;
-            } else { // This is regular branching
-                $this->generator->defElseIfCondition($branch->toLogicConditionCode($pathValue));
             }
-
-            // Second stage receive parameters
-            if ($branch->isParametrized()) {
-                // Store parameter value received from condition
-                $this->generator->newLine($branch->storeMatchedParameter());
-            }
-
-            /**
-             * Optimization to remove nested string operations - we create temporary $path variables
-             */
-            $pathVariable = '$path' . rand(0, 99999);
-
-            // Do not output new $path variable creation if this is logic end
-            if (sizeof($branch->branches)) {
-                $this->generator->newLine($pathVariable . ' = ' . $branch->removeMatchedPathCode($pathValue) . ';');
-            }
-
-            // We should subtract part of $path var to remove this parameter
-            // Go deeper in recursion
-            $this->innerGenerate2($branch, $pathVariable, false);
+            // Close logic branch if matches
+            $this->generator->newLine($parent->returnRouteCode());
         }
 
-        // Return route if branch has it
-        if ($parent->hasRoute()) {
-            // If we had other inner branch for this parent branch - we need to add else
-            if (sizeof($parent->branches)) {
-                $this->generator->defElseCondition();
-            }
-
-            $this->generator->newLine($parent->returnRouteCode());
+        // Iterate inner branches
+        foreach ($parent->branches as $branch) {
+            $this->generatorBranchesLoop($branch, $conditionStarted, $pathValue);
         }
 
         // Close first condition
         if ($conditionStarted) {
             $this->generator->endIfCondition();
         }
+    }
+
+    /**
+     * Generator inner branches loop handler.
+     *
+     * @param Branch $branch Branch for looping its inner branches
+     * @param bool $conditionStarted Return variable showing if inner branching has been started
+     * @param string $pathValue Current routing logic $path variable name
+     */
+    protected function generatorBranchesLoop(Branch $branch, &$conditionStarted, $pathValue)
+    {
+        // First stage - open condition
+        // If we have started condition branching but this branch has parameters
+        if ($conditionStarted && $branch->isParametrized()) {
+            $this->generator
+                // Close current condition branching
+                ->endIfCondition()
+                // Start new condition
+                ->defIfCondition($branch->toLogicConditionCode($pathValue));
+        } elseif (!$conditionStarted) { // This is first inner branch
+            // Start new condition
+            $this->generator->defIfCondition($branch->toLogicConditionCode($pathValue));
+            // Set flag that condition has started
+            $conditionStarted = true;
+        } else { // This is regular branching
+            $this->generator->defElseIfCondition($branch->toLogicConditionCode($pathValue));
+        }
+
+        // Second stage receive parameters
+        if ($branch->isParametrized()) {
+            // Store parameter value received from condition
+            $this->generator->newLine($branch->storeMatchedParameter());
+        }
+
+        /**
+         * Optimization to remove nested string operations - we create temporary $path variables
+         */
+        $pathVariable = '$path' . rand(0, 99999);
+
+        // Do not output new $path variable creation if this is logic end
+        if (sizeof($branch->branches)) {
+            $this->generator->newLine($pathVariable . ' = ' . $branch->removeMatchedPathCode($pathValue) . ';');
+        }
+
+        // We should subtract part of $path var to remove this parameter
+        // Go deeper in recursion
+        $this->innerGenerate2($branch, $pathVariable, false);
     }
 }
