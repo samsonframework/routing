@@ -16,11 +16,13 @@ use samsonframework\routing\RouteCollection;
 
 class GeneratorTest extends \PHPUnit_Framework_TestCase
 {
+    protected $routerLogicFunction;
+
     /** Routing function wrapper */
-    public function routerLogic($path, $method, $functionName = Core::ROUTING_LOGIC_FUNCTION)
+    public function routerLogic($path, $method)
     {
         $path = rtrim(strtok($method.'/'.ltrim($path, '/'), '?'), '/');
-        return $functionName($path, $method);
+        return call_user_func($this->routerLogicFunction, $path, $method);
     }
     
     public function testGeneration()
@@ -54,7 +56,8 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         }
 
         $generator = new Structure($routes, new \samsonphp\generator\Generator());
-        $routerLogic = $generator->generate();
+        $this->routerLogicFunction = '__router'.rand(0, 9999);
+        $routerLogic = $generator->generate($this->routerLogicFunction);
 
         // Create real file for debugging
         file_put_contents(__DIR__.'/testLogic.php', '<?php '."\n".$routerLogic);

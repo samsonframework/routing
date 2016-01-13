@@ -19,6 +19,34 @@ use samsonphp\generator\Generator;
  * one preg_match or simple string matching depending on it
  * nodes, this will simplify generated routing logic function
  * and increase performance.
+ *
+ * If this line of branches are texttual we need to give them higher
+ * priority on sorting.
+ */
+
+/**
+ * TODO:
+ * We need to remove GET from logic branches and create if condition for method
+ * separately to increase performance.
+ */
+
+/**
+ * TODO:
+ * We need to invent a way to put parent branches with routes to one level higher in
+ * conditions logic tree to speed up their matching. For example we have:
+ * /user/
+ * /user/winners/
+ * /user/{id}
+ * /user/{id}/form
+ * then we should get:
+ * if ($path === 'user'){return ...}
+ * elseif ($path === 'user/winners') {retun ...}
+ * elseif (substr($path, 0, 4) == 'user) {
+ *  $path234 = substr($path, 5);
+ *  if (preg_match(...{id})) {
+ *   ...
+ *  }
+ * }
  */
 
 /**
@@ -28,7 +56,7 @@ use samsonphp\generator\Generator;
 
 /**
  * TODO:
- * Refactor toget 10 points %)
+ * Refactor to get 10 points %)
  */
 
 /**
