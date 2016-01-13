@@ -13,18 +13,6 @@ use samsonframework\routing\RouteCollection;
 use samsonphp\generator\Generator;
 
 /**
- * TODO: #0
- * We need to invent optimization for single-child branches
- * to make collection of nodes for them or similar and generate
- * one preg_match or simple string matching depending on it
- * nodes, this will simplify generated routing logic function
- * and increase performance.
- *
- * If this line of branches are texttual we need to give them higher
- * priority on sorting.
- */
-
-/**
  * TODO: #2
  * We need to invent a way to put parent branches with routes to one level higher in
  * conditions logic tree to speed up their matching. For example we have:
