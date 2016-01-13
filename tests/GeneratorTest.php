@@ -20,7 +20,7 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
     /** Routing function wrapper */
     public function routerLogic($path, $method)
     {
-        $path = rtrim(strtok($method.'/'.ltrim($path, '/'), '?'), '/');
+        $path = rtrim(strtok(ltrim($path, '/'), '?'), '/');
         return call_user_func($this->routerLogicFunction, $path, $method);
     }
     

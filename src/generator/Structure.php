@@ -13,7 +13,7 @@ use samsonframework\routing\RouteCollection;
 use samsonphp\generator\Generator;
 
 /**
- * TODO:
+ * TODO: #0
  * We need to invent optimization for single-child branches
  * to make collection of nodes for them or similar and generate
  * one preg_match or simple string matching depending on it
@@ -25,13 +25,13 @@ use samsonphp\generator\Generator;
  */
 
 /**
- * TODO:
+ * TODO: #1
  * We need to remove GET from logic branches and create if condition for method
  * separately to increase performance.
  */
 
 /**
- * TODO:
+ * TODO: #2
  * We need to invent a way to put parent branches with routes to one level higher in
  * conditions logic tree to speed up their matching. For example we have:
  * /user/
@@ -50,8 +50,12 @@ use samsonphp\generator\Generator;
  */
 
 /**
- * TODO:
+ * TODO: #3
  * We need to add  support for optional parameters.
+ * Currently it can be implemented via creating separate routes for each
+ * parameters set. We need to create supported syntax for this by adding
+ * regular expression "?" in one pattern with multiple parameters this refeneces
+ * previous improvement #0.
  */
 
 /**
@@ -72,6 +76,9 @@ class Structure
     /** @var Generator */
     protected $generator;
 
+    /** @var array Collection of existing http methods */
+    protected $httpMethods = array();
+
     /**
      * Structure constructor.
      *
@@ -86,11 +93,11 @@ class Structure
         $this->logic = new Branch("");
 
         // Collect all HTTP method that this routes collection has
-        $httpMethods = array();
+        $this->httpMethods = array();
         foreach ($routes as $route) {
-            if (!isset($httpMethods[$route->method])) {
+            if (!isset($this->httpMethods[$route->method])) {
                 $this->logic->add($route->method);
-                $httpMethods[$route->method] = '';
+                $this->httpMethods[$route->method] = $route->method;
             }
         }
 
@@ -148,9 +155,15 @@ class Structure
             ->defVar('$parameters', array())
         ;
 
-        // Perform routing logic generation
-        $this->innerGenerate2($this->logic);
+        foreach ($this->httpMethods as $method) {
+            $this->generator->defIfCondition('$method === "'.$method.'"');
+            // Perform routing logic generation
+            $this->innerGenerate2($this->logic->find($method));
+            // Add return found toute
+            $this->generator->newLine('return null;')->endFunction();
+        }
 
+        // Add method not found
         $this->generator->newLine('return null;')->endFunction();
 
         return $this->generator->flush();

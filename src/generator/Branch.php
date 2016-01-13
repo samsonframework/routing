@@ -140,7 +140,7 @@ class Branch
         } elseif (sizeof($this->branches)) {
             return 'substr(' . $currentString . ', ' . $offset . ', ' . strlen($this->node->name) . ') === \'' . $this->node->name . '\'';
         } else { // This is last condition in branch it should match
-            $content = $this->node->name == '/' ? 'false' : '\'' . $this->node->name . '\'';
+            $content = $this->node->name == '/' ? '\'\'' : '\'' . $this->node->name . '\'';
             return $currentString . ' === ' . $content;
         }
     }
