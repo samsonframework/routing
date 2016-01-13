@@ -158,13 +158,16 @@ class Structure
             ->defVar('$parameters', array())
         ;
 
-        // Build routes for first method
-        $this->buildRoutesByMethod(array_shift($this->httpMethods));
-
-        // Build routes for other methods
-        foreach ($this->httpMethods as $method) {
+        // Do not generate if we have no http methods supported
+        if (sizeof($this->httpMethods)) {
             // Build routes for first method
-            $this->buildRoutesByMethod($method);
+            $this->buildRoutesByMethod(array_shift($this->httpMethods));
+
+            // Build routes for other methods
+            foreach ($this->httpMethods as $method) {
+                // Build routes for first method
+                $this->buildRoutesByMethod($method);
+            }
         }
 
         // Add method not found
