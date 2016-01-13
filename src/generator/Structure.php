@@ -135,6 +135,15 @@ class Structure
         $this->logic->sort();
     }
 
+    protected function buildRoutesByMethod($method, $conditionFunction = 'defIfCondition')
+    {
+        $this->generator->$conditionFunction('$method === "'.$method.'"');
+        // Perform routing logic generation
+        $this->innerGenerate2($this->logic->find($method));
+        // Add return found route
+        $this->generator->newLine('return null;');
+    }
+
     /**
      * Generate routing logic function.
      *
@@ -149,16 +158,17 @@ class Structure
             ->defVar('$parameters', array())
         ;
 
+        // Build routes for first method
+        $this->buildRoutesByMethod(array_shift($this->httpMethods));
+
+        // Build routes for other methods
         foreach ($this->httpMethods as $method) {
-            $this->generator->defIfCondition('$method === "'.$method.'"');
-            // Perform routing logic generation
-            $this->innerGenerate2($this->logic->find($method));
-            // Add return found toute
-            $this->generator->newLine('return null;')->endFunction();
+            // Build routes for first method
+            $this->buildRoutesByMethod($method);
         }
 
         // Add method not found
-        $this->generator->newLine('return null;')->endFunction();
+        $this->generator->endIfCondition()->newLine('return null;')->endFunction();
 
         return $this->generator->flush();
     }
