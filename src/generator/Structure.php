@@ -13,25 +13,6 @@ use samsonframework\routing\RouteCollection;
 use samsonphp\generator\Generator;
 
 /**
- * TODO: #2
- * We need to invent a way to put parent branches with routes to one level higher in
- * conditions logic tree to speed up their matching. For example we have:
- * /user/
- * /user/winners/
- * /user/{id}
- * /user/{id}/form
- * then we should get:
- * if ($path === 'user'){return ...}
- * elseif ($path === 'user/winners') {retun ...}
- * elseif (substr($path, 0, 4) == 'user) {
- *  $path234 = substr($path, 5);
- *  if (preg_match(...{id})) {
- *   ...
- *  }
- * }
- */
-
-/**
  * TODO: #3
  * We need to add  support for optional parameters.
  * Currently it can be implemented via creating separate routes for each
@@ -83,7 +64,7 @@ class Structure
             }
         }
 
-        /** @var Route $route */
+        /** @var Route $route Build routing logic branches */
         foreach ($routes as $route) {
             // Set branch pointer to root HTTP method branch
             $currentBranch = $this->logic->find($route->method);
@@ -119,12 +100,14 @@ class Structure
             }
         }
 
-        // Optimize each top level branch
+        // Optimize each top level branch(method branch)
         foreach ($this->httpMethods as $method) {
             foreach ($this->logic->branches[$method]->branches as $branch) {
                 $this->optimizeBranches($branch);
             }
         }
+
+        $this->optimizeBranchesWithRoutes($this->logic);
 
         // Sort branches in correct order following routing logic rules
         $this->logic->sort();
@@ -132,7 +115,34 @@ class Structure
 
     /**
      * Branch optimization:
-     * 1.Method searches for branch only with one child and combine their
+     * We take inner textual final branch one level higher to speed
+     * up their matching.
+     *
+     * @param Branch $parent
+     */
+    protected function optimizeBranchesWithRoutes(Branch &$parent)
+    {
+        /** @var Branch $branch */
+        foreach ($parent->branches as &$branch) {
+            // If inner branch is final and has a route
+            if ($branch->hasRoute() && !$branch->isParametrized() && sizeof($branch->branches)) {
+                // Create a new one one level higher
+                $parent->branches[$branch->patternPath.'$'] = new Branch($branch->patternPath, $parent);
+                $parent->branches[$branch->patternPath.'$']->identifier = $branch->identifier;
+                $parent->branches[$branch->patternPath.'$']->callback = $branch->callback;
+                $parent->branches[$branch->patternPath.'$']->node = $branch->node;
+                // Remove route from inner branch
+                $branch->identifier = '';
+                $branch->callback = '';
+            }
+
+            $this->optimizeBranchesWithRoutes($branch);
+        }
+    }
+
+    /**
+     * Branch optimization:
+     * Method searches for branch only with one child and combine their
      * patterns, this decreases logic branches and path cutting in final
      * routing logic function.
      *

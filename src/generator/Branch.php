@@ -294,7 +294,7 @@ class Branch
                  * If both branches are not parametrized and they have two length-equal string patterns then not
                  * "deeper" branch has priority.
                  */
-                return $aBranch->size < $bBranch->size ? 1 : -1;
+                return $aBranch->size > $bBranch->size ? 1 : -1;
             }
         }
     }
