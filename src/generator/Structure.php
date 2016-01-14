@@ -165,7 +165,7 @@ class Structure
             $parent->node = array_merge($parent->node, $branch->node);
 
             if (isset($branch->identifier{1})) {
-                $parent->identifier = $branch->identifier;
+                $parent->identifier = $branch->identifier;
                 $parent->callback = $branch->callback;
             }
 
@@ -184,7 +184,9 @@ class Structure
     {
         $this->generator->$conditionFunction('$method === "'.$method.'"');
         // Perform routing logic generation
-        $this->innerGenerate2($this->logic->find($method));
+        $logicFind = $this->logic->find($method);
+        if ($logicFind) $this->innerGenerate2($this->logic->find($method));
+
         // Add return found route
         $this->generator->newLine('return null;');
     }
