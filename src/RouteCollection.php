@@ -42,6 +42,7 @@ class RouteCollection implements \ArrayAccess, \Iterator
      *
      * @param Route $route Route instance for addition
      * @throws IdentifierDuplication
+     * @return self Chaining
      */
     public function add(Route $route)
     {
@@ -50,6 +51,8 @@ class RouteCollection implements \ArrayAccess, \Iterator
         } else {
             throw new IdentifierDuplication('Identifier['.$route->identifier.'] already exists');
         }
+
+        return $this;
     }
 
     /**
