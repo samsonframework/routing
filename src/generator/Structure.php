@@ -171,6 +171,10 @@ class Structure
 
             // We are out from recursion - remove this branch
             unset($parent->branches[$branch->patternPath]);
+        } else { // Iterate other branches
+            foreach ($parent->branches as &$branch) {
+                $this->optimizeBranches($branch);
+            }
         }
     }
 

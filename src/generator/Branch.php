@@ -145,7 +145,7 @@ class Branch
                     // Add regular expression node
                     $regularExpression[] = '(?<' . $node->name . '>'.$filter.')';
                 } else {
-                    $regularExpression[] = $node->name;
+                    $regularExpression[] = preg_quote($node->name);
                 }
             }
             // If this is last parameter in logic force it to end with its pattern

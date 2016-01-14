@@ -64,9 +64,9 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         require(__DIR__.'/testLogic.php');
 
         foreach ($routeArray as $identifier => $routeData) {
-            if ($identifier === 'test-two-params-at-end'){
-                $a = 1;
-            }
+//            if ($identifier === 'user-by-id-node'){
+//                $a = 1;
+//            }
             $result = $this->routerLogic($routeData[2], $routeData[0]);
             $this->assertEquals($identifier, $result[0]);
             if (isset($routeData[3])) {
