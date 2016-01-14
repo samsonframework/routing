@@ -59,7 +59,7 @@ class Branch
     /**
      * Set branch callback value.
      *
-     * @param callable $callback
+     * @param mixed $callback
      */
     public function setCallback($callback)
     {

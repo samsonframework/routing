@@ -30,11 +30,11 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $routeArray = array(
             'main-page' => array('GET', '/', '/'),
             'inner-page' => array('GET', '/{page}', '/text-page', array('page' => 'text-page')),
-            'user-home-without-slash' => array('GET', '/user', '/user'),
             'test-two-similar-fixed' => array('GET', '/userlist', '/userlist'),
             'test-two-params-at-end' => array('GET', '/userlist/{group}/{action}', '/userlist/123/kill', array('group'=>'123', 'action' => 'kill')),
             'user-winners-slash' => array('GET', '/user/winners/', '/user/winners/'),
             'user-by-id' => array('GET', '/user/{id}', '/user/123'),
+            'user-home-without-slash' => array('GET', '/user', '/user'),
             'user-by-gender-age' => array('GET', '/user/{gender:male|female}/{age}', '/user/male/19d', array('gender' => 'male', 'age' => '19d')),
             'user-by-gender-age-filtered' => array('GET', '/user/{gender:male|female}/{age:[0-9]+}', '/user/female/8', array('gender' => 'female', 'age' => '8')),
             'user-by-id-form' => array('GET', '/user/{id}/form', '/user/123/form', array('id' => '123')),
@@ -64,6 +64,9 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         require(__DIR__.'/testLogic.php');
 
         foreach ($routeArray as $identifier => $routeData) {
+            if ($identifier === 'test-two-params-at-end'){
+                $a = 1;
+            }
             $result = $this->routerLogic($routeData[2], $routeData[0]);
             $this->assertEquals($identifier, $result[0]);
             if (isset($routeData[3])) {

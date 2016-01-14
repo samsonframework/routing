@@ -104,14 +104,14 @@ class Structure
             }
         }
 
+        $this->optimizeBranchesWithRoutes($this->logic);
+
         // Optimize each top level branch(method branch)
         foreach ($this->httpMethods as $method) {
             foreach ($this->logic->branches[$method]->branches as $branch) {
-                //$this->optimizeBranches($branch);
+                $this->optimizeBranches($branch);
             }
         }
-
-        $this->optimizeBranchesWithRoutes($this->logic);
 
         // Sort branches in correct order following routing logic rules
         $this->logic->sort();
