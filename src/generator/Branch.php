@@ -134,7 +134,7 @@ class Branch
      */
     public function toLogicConditionCode($currentString = '$path', $offset = 0)
     {
-        $nodeValue = $this->nodeValue();
+        $nodeValue = $this->nodeRegExpValue('name');
         if ($this->isParametrized()) {
             $regularExpression = '';
             /** @var Node $node Iterate all nodes and gather them in "big" regular expression */
@@ -174,25 +174,12 @@ class Branch
         return false;
     }
 
-    /** @return string Node regular expression representation */
-    public function nodeRegExp()
-    {
+    /** @return string Node regular expression or string representation */
+    public function nodeRegExpValue($valueName) {
         /** @var Node $node */
         $return = array();
         foreach ($this->node as $node) {
-            $return[] = $node->regexp;
-        }
-
-        return implode('/', $return);
-    }
-
-    /** @return string Node string representation */
-    public function nodeValue()
-    {
-        /** @var Node $node */
-        $return = array();
-        foreach ($this->node as $node) {
-            $return[] = $node->name;
+            $return[] = $node->{$valueName};
         }
 
         return implode('/', $return);
@@ -236,9 +223,9 @@ class Branch
     {
         if ($this->isParametrized()) {
             // Just remove matched from the string
-            return 'substr(' . $currentString . ', strlen($parameters[\'' . $this->nodeValue() . '\']) + 1)';
+            return 'substr(' . $currentString . ', strlen($parameters[\'' . $this->nodeRegExpValue('name') . '\']) + 1)';
         } else {
-            return 'substr(' . $currentString . ', ' . (strlen($this->nodeValue()) + 1) . ')';
+            return 'substr(' . $currentString . ', ' . (strlen($this->nodeRegExpValue('name')) + 1) . ')';
         }
     }
 
@@ -264,8 +251,8 @@ class Branch
              * Rule #2
              * If both branches are parametrized then branch with set regexp filter has higher priority.
              */
-            $aRegExp = $aBranch->nodeRegExp();
-            $bRegExp = $bBranch->nodeRegExp();
+            $aRegExp = $aBranch->nodeRegExpValue('regexp');
+            $bRegExp = $bBranch->nodeRegExpValue('regexp');
             if (isset($aRegExp{1}) && !isset($bRegExp{1})) {
                 return -1;
             } elseif (!isset($aRegExp{1}) && isset($bRegExp{1})) {
@@ -295,9 +282,9 @@ class Branch
              * Rule #3
              * If both branches are not parametrized then branch with shorter pattern string has higher priority.
              */
-            if (strlen($aBranch->nodeValue()) > strlen($bBranch->nodeValue())) {
+            if (strlen($aBranch->nodeRegExpValue('name')) > strlen($bBranch->nodeRegExpValue('name'))) {
                 return 1;
-            } elseif (strlen($aBranch->nodeValue()) < strlen($bBranch->nodeValue())) {
+            } elseif (strlen($aBranch->nodeRegExpValue('name')) < strlen($bBranch->nodeRegExpValue('name'))) {
                 return -1;
             } else {
                 /**
