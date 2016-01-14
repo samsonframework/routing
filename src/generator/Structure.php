@@ -13,22 +13,21 @@ use samsonframework\routing\RouteCollection;
 use samsonphp\generator\Generator;
 
 /**
- * TODO:
- * We need to invent optimization for single-child branches
- * to make collection of nodes for them or similar and generate
- * one preg_match or simple string matching depending on it
- * nodes, this will simplify generated routing logic function
- * and increase performance.
- */
-
-/**
- * TODO:
+ * TODO: #3
  * We need to add  support for optional parameters.
+ * Currently it can be implemented via creating separate routes for each
+ * parameters set. We need to create supported syntax for this by adding
+ * regular expression "?" in one pattern with multiple parameters this refeneces
+ * previous improvement #0.
  */
 
 /**
  * TODO:
- * Refactor toget 10 points %)
+ * Refactor to get 10 points %)
+ */
+
+/**
+ * TODO: Create a separate limit handling of main page route, it should be first.
  */
 
 /**
@@ -44,6 +43,9 @@ class Structure
     /** @var Generator */
     protected $generator;
 
+    /** @var array Collection of existing http methods */
+    protected $httpMethods = array();
+
     /**
      * Structure constructor.
      *
@@ -58,15 +60,15 @@ class Structure
         $this->logic = new Branch("");
 
         // Collect all HTTP method that this routes collection has
-        $httpMethods = array();
+        $this->httpMethods = array();
         foreach ($routes as $route) {
-            if (!isset($httpMethods[$route->method])) {
+            if (!isset($this->httpMethods[$route->method])) {
                 $this->logic->add($route->method);
-                $httpMethods[$route->method] = '';
+                $this->httpMethods[$route->method] = $route->method;
             }
         }
 
-        /** @var Route $route */
+        /** @var Route $route Build routing logic branches */
         foreach ($routes as $route) {
             // Set branch pointer to root HTTP method branch
             $currentBranch = $this->logic->find($route->method);
@@ -102,8 +104,89 @@ class Structure
             }
         }
 
+        // Optimize each top level branch(method branch)
+        foreach ($this->httpMethods as $method) {
+            foreach ($this->logic->branches[$method]->branches as $branch) {
+                $this->optimizeBranches($branch);
+            }
+        }
+
+        $this->optimizeBranchesWithRoutes($this->logic);
+
         // Sort branches in correct order following routing logic rules
         $this->logic->sort();
+    }
+
+    /**
+     * Branch optimization:
+     * We take inner textual final branch one level higher to speed
+     * up their matching.
+     *
+     * @param Branch $parent
+     */
+    protected function optimizeBranchesWithRoutes(Branch &$parent)
+    {
+        /** @var Branch $branch */
+        foreach ($parent->branches as &$branch) {
+            // If inner branch is final and has a route
+            if ($branch->hasRoute() && !$branch->isParametrized() && sizeof($branch->branches)) {
+                // Create a new one one level higher
+                $parent->branches[$branch->patternPath.'$'] = new Branch($branch->patternPath, $parent);
+                $parent->branches[$branch->patternPath.'$']->identifier = $branch->identifier;
+                $parent->branches[$branch->patternPath.'$']->callback = $branch->callback;
+                $parent->branches[$branch->patternPath.'$']->node = $branch->node;
+                // Remove route from inner branch
+                $branch->identifier = '';
+                $branch->callback = '';
+            }
+
+            $this->optimizeBranchesWithRoutes($branch);
+        }
+    }
+
+    /**
+     * Branch optimization:
+     * Method searches for branch only with one child and combine their
+     * patterns, this decreases logic branches and path cutting in final
+     * routing logic function.
+     *
+     * @param Branch $parent
+     */
+    protected function optimizeBranches(Branch &$parent)
+    {
+        if (!$parent->hasRoute() && sizeof($parent->branches) === 1) {
+            /** @var Branch $branch */
+            $branch = array_shift($parent->branches);
+
+            // Go deeper in recursion for nested branches
+            $this->optimizeBranches($branch);
+
+            // Add inner branch node to current branch
+            $parent->node = array_merge($parent->node, $branch->node);
+
+            if (isset($branch->identifier{1})) {
+                $parent->identifier = $branch->identifier;
+                $parent->callback = $branch->callback;
+            }
+
+            // We are out from recursion - remove this branch
+            unset($parent->branches[$branch->patternPath]);
+        }
+    }
+
+    /**
+     * HTTP method routing logic condition generator.
+     *
+     * @param string $method HTPP method name
+     * @param string $conditionFunction PHP Code generator condition function name
+     */
+    protected function buildRoutesByMethod($method, $conditionFunction = 'defIfCondition')
+    {
+        $this->generator->$conditionFunction('$method === "'.$method.'"');
+        // Perform routing logic generation
+        $this->innerGenerate2($this->logic->find($method));
+        // Add return found route
+        $this->generator->newLine('return null;');
     }
 
     /**
@@ -120,9 +203,22 @@ class Structure
             ->defVar('$parameters', array())
         ;
 
-        // Perform routing logic generation
-        $this->innerGenerate2($this->logic);
+        // Do not generate if we have no http methods supported
+        if (sizeof($this->httpMethods)) {
+            // Build routes for first method
+            $this->buildRoutesByMethod(array_shift($this->httpMethods));
 
+            // Build routes for other methods
+            foreach ($this->httpMethods as $method) {
+                // Build routes for first method
+                $this->buildRoutesByMethod($method, 'defElseIfCondition');
+            }
+
+            // Add method not found
+            $this->generator->endIfCondition();
+        }
+
+        // Add method not found
         $this->generator->newLine('return null;')->endFunction();
 
         return $this->generator->flush();
