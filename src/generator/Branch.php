@@ -281,13 +281,24 @@ class Branch
             /** TODO: We need to invent a way to compare regexp filter to define who is "wider" */
         } else { // Both branches are not parametrized
             /**
+             * Rule #4
+             * If both are not parametrized and one is final - we choose it as check for it more
+             * optimal in logic condition branches.
+             */
+            if (sizeof($aBranch->branches) === 0) {
+                return -1;
+            } elseif (sizeof($bBranch->branches === 0)) {
+                return 1;
+            }
+
+            /**
              * Rule #3
-             * If both branches are not parametrized then branch with longer pattern string has higher priority.
+             * If both branches are not parametrized then branch with shorter pattern string has higher priority.
              */
             if (strlen($aBranch->nodeValue()) > strlen($bBranch->nodeValue())) {
-                return -1;
-            } elseif (strlen($aBranch->nodeValue()) < strlen($bBranch->nodeValue())) {
                 return 1;
+            } elseif (strlen($aBranch->nodeValue()) < strlen($bBranch->nodeValue())) {
+                return -1;
             } else {
                 /**
                  * Rule #4
