@@ -294,28 +294,28 @@ class Branch
              * If both are not parametrized and one is final - we choose it as check for it more
              * optimal in logic condition branches.
              */
-            if (sizeof($aBranch->branches) === 0) {
-                return -1;
-            } elseif (sizeof($bBranch->branches === 0)) {
-                return 1;
-            }
+//            if (sizeof($aBranch->branches) === 0) {
+//                return -1;
+//            } elseif (sizeof($bBranch->branches === 0)) {
+//                return 1;
+//            }
 
             /**
              * Rule #3
              * If both branches are not parametrized then branch with shorter pattern string has higher priority.
              */
-//            if (strlen($aBranch->nodeValue()) > strlen($bBranch->nodeValue())) {
-//                return 1;
-//            } elseif (strlen($aBranch->nodeValue()) < strlen($bBranch->nodeValue())) {
-//                return -1;
-//            } else {
-//                /**
-//                 * Rule #4
-//                 * If both branches are not parametrized and they have two length-equal string patterns then not
-//                 * "deeper" branch has priority.
-//                 */
-//                return $aBranch->size > $bBranch->size ? 1 : -1;
-//            }
+            if (strlen($aBranch->nodeValue()) > strlen($bBranch->nodeValue())) {
+                return -1;
+            } elseif (strlen($aBranch->nodeValue()) < strlen($bBranch->nodeValue())) {
+                return 1;
+            } else {
+                /**
+                 * Rule #4
+                 * If both branches are not parametrized and they have two length-equal string patterns then not
+                 * "deeper" branch has priority.
+                 */
+                return $aBranch->size > $bBranch->size ? 1 : -1;
+            }
         }
     }
 }
