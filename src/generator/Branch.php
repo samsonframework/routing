@@ -261,6 +261,15 @@ class Branch
             return 1;
         } elseif ($aBranch->isParametrized() && $bBranch->isParametrized()) {
             /**
+             * Rule #3
+             * If both are parametrized we prioritize the one with more nodes
+             */
+            if (sizeof($aBranch->node) > sizeof($bBranch->node)) {
+                return -1;
+            } elseif (sizeof($aBranch->node) < sizeof($bBranch->node)) {
+                return 1;
+            }
+            /**
              * Rule #2
              * If both branches are parametrized then branch with set regexp filter has higher priority.
              */
