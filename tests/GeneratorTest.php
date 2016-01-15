@@ -46,7 +46,9 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
             'user-by-id-node' => array('GET', '/user/{id}/n"$ode', '/user/123/n"$ode', array('id' => '123')),
             'user-by-id-node-with-id' => array('GET', '/user/{id}/n"$ode/{param}', '/user/123/n"$ode/321', array('id' => '123', 'param' => '321')),
             //'user-with-empty' => array('GET', '/user/{id}/get', '/user//get'),
-            'user-post-by-id' => array('POST', '/user/{id}/save', '/user/123/save', array('id' => '123'))
+            'user-post-by-id' => array('POST', '/user/{id}/save', '/user/123/save', array('id' => '123')),
+            'user-post-by-id-param' => array('POST', '/user/{id}/save/{name}', '/user/123/save/vitaly', array('id' => '123', 'name' => 'vitaly')),
+            'user-post-by-id-param2' => array('POST', '/user/{id}/save/{name}/{group}', '/user/123/save/vitaly/students', array('id' => '123', 'name' => 'vitaly', 'group' => 'students')),
         );
 
         // Create routes collection

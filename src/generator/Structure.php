@@ -109,7 +109,7 @@ class Structure
         // Optimize each top level branch(method branch)
         foreach ($this->httpMethods as $method) {
             foreach ($this->logic->branches[$method]->branches as $branch) {
-                $this->optimizeBranches($branch);
+                //$this->optimizeBranches($branch);
             }
         }
 
