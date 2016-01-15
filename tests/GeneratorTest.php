@@ -31,6 +31,7 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
             'main-page' => array('GET', '/', '/'),
             'inner-page' => array('GET', '/{page}', '/text-page', array('page' => 'text-page')),
             'test-two-similar-fixed' => array('GET', '/userlist', '/userlist'),
+            'test-two-similar-fixed2' => array('GET', '/userlist/friends', '/userlist/friends'),
             'test-two-params-at-end' => array('GET', '/userlist/{group}/{action}', '/userlist/123/kill', array('group'=>'123', 'action' => 'kill')),
             'user-winners-slash' => array('GET', '/user/winners/', '/user/winners/'),
             'user-by-id' => array('GET', '/user/{id}', '/user/123'),
@@ -49,6 +50,8 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
             'user-post-by-id' => array('POST', '/user/{id}/save', '/user/123/save', array('id' => '123')),
             'user-post-by-id-param' => array('POST', '/user/{id}/save/{name}', '/user/123/save/vitaly', array('id' => '123', 'name' => 'vitaly')),
             'user-post-by-id-param2' => array('POST', '/user/{id}/save/{name}/{group}', '/user/123/save/vitaly/students', array('id' => '123', 'name' => 'vitaly', 'group' => 'students')),
+            'user-post-by-id-param3' => array('POST', '/cms/gift/form/{id}', '/cms/gift/form/123', array('id' => '123')),
+            'user-post-by-id-param4' => array('POST', '/cms/gift/{id}/{search}', '/cms/gift/123/321', array('id' => '123', 'search' => '321')),
         );
 
         // Create routes collection

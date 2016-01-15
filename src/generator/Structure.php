@@ -22,10 +22,6 @@ use samsonphp\generator\Generator;
  */
 
 /**
- * TODO: #4
- * Finalize optimization as previous version removed inner branches.
- */
-/**
  * TODO:
  * Refactor to get 10 points %)
  */
