@@ -22,6 +22,10 @@ use samsonphp\generator\Generator;
  */
 
 /**
+ * TODO: #4
+ * Finalize optimization as previous version removed inner branches.
+ */
+/**
  * TODO:
  * Refactor to get 10 points %)
  */
@@ -109,7 +113,7 @@ class Structure
         // Optimize each top level branch(method branch)
         foreach ($this->httpMethods as $method) {
             foreach ($this->logic->branches[$method]->branches as $branch) {
-                //$this->optimizeBranches($branch);
+                $this->optimizeBranches($branch);
             }
         }
 
@@ -163,6 +167,8 @@ class Structure
 
                 // Add inner branch node to current branch
                 $parent->node = array_merge($parent->node, $branch->node);
+                // Add inner branches
+                $parent->branches = array_merge($parent->branches, $branch->branches);
 
                 if (isset($branch->identifier{1})) {
                     $parent->identifier = $branch->identifier;

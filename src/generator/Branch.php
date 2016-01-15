@@ -236,7 +236,7 @@ class Branch
     {
         if ($this->isParametrized()) {
             // Just remove matched from the string
-            return 'substr(' . $currentString . ', strlen($parameters[\'' . $this->nodeValue() . '\']) + 1)';
+            return 'substr(' . $currentString . ', strlen($matches[0]) + 1)';
         } else {
             return 'substr(' . $currentString . ', ' . (strlen($this->nodeValue()) + 1) . ')';
         }
