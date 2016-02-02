@@ -192,7 +192,9 @@ class Structure
         $this->generator->$conditionFunction('$method === "'.$method.'"');
         // Perform routing logic generation
         $logicFind = $this->logic->find($method);
-        if ($logicFind) $this->innerGenerate2($logicFind);
+        if ($logicFind) {
+            $this->innerGenerate2($logicFind);
+        }
 
         // Add return found route
         $this->generator->newLine('return null;');
