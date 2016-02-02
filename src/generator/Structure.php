@@ -104,14 +104,14 @@ class Structure
             }
         }
 
+        $this->optimizeBranchesWithRoutes($this->logic);
+
         // Optimize each top level branch(method branch)
         foreach ($this->httpMethods as $method) {
             foreach ($this->logic->branches[$method]->branches as $branch) {
                 $this->optimizeBranches($branch);
             }
         }
-
-        $this->optimizeBranchesWithRoutes($this->logic);
 
         // Sort branches in correct order following routing logic rules
         $this->logic->sort();
@@ -154,23 +154,30 @@ class Structure
      */
     protected function optimizeBranches(Branch &$parent)
     {
-        if (!$parent->hasRoute() && sizeof($parent->branches) === 1) {
-            /** @var Branch $branch */
-            $branch = array_shift($parent->branches);
+        if (sizeof($parent->branches) === 1) {
+            if (!$parent->hasRoute()) {
+                /** @var Branch $branch */
+                $branch = end($parent->branches);
 
-            // Go deeper in recursion for nested branches
-            $this->optimizeBranches($branch);
+                $this->optimizeBranches($branch);
 
-            // Add inner branch node to current branch
-            $parent->node = array_merge($parent->node, $branch->node);
+                // Add inner branch node to current branch
+                $parent->node = array_merge($parent->node, $branch->node);
+                // Add inner branches
+                $parent->branches = array_merge($parent->branches, $branch->branches);
 
-            if (isset($branch->identifier{1})) {
-                $parent->identifier = $branch->identifier;
-                $parent->callback = $branch->callback;
+                if (isset($branch->identifier{1})) {
+                    $parent->identifier = $branch->identifier;
+                    $parent->callback = $branch->callback;
+                }
+
+                // We are out from recursion - remove this branch
+                unset($parent->branches[$branch->patternPath]);
             }
-
-            // We are out from recursion - remove this branch
-            unset($parent->branches[$branch->patternPath]);
+        } else { // Iterate other branches
+            foreach ($parent->branches as &$branch) {
+                $this->optimizeBranches($branch);
+            }
         }
     }
 

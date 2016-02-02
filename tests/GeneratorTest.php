@@ -30,23 +30,28 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $routeArray = array(
             'main-page' => array('GET', '/', '/'),
             'inner-page' => array('GET', '/{page}', '/text-page', array('page' => 'text-page')),
-            'user-home' => array('GET', '/user/', '/user/'),
-            'user-home-without-slash' => array('GET', '/user'),
-            'test-two-similar-fixed' => array('GET', '/userlist'),
-            'user-winners-slash' => array('GET', '/user/winners/'),
+            'test-two-similar-fixed' => array('GET', '/userlist', '/userlist'),
+            'test-two-similar-fixed2' => array('GET', '/userlist/friends', '/userlist/friends'),
+            'test-two-params-at-end' => array('GET', '/userlist/{group}/{action}', '/userlist/123/kill', array('group'=>'123', 'action' => 'kill')),
+            'user-winners-slash' => array('GET', '/user/winners/', '/user/winners/'),
             'user-by-id' => array('GET', '/user/{id}', '/user/123'),
+            'user-home-without-slash' => array('GET', '/user', '/user'),
             'user-by-gender-age' => array('GET', '/user/{gender:male|female}/{age}', '/user/male/19d', array('gender' => 'male', 'age' => '19d')),
             'user-by-gender-age-filtered' => array('GET', '/user/{gender:male|female}/{age:[0-9]+}', '/user/female/8', array('gender' => 'female', 'age' => '8')),
             'user-by-id-form' => array('GET', '/user/{id}/form', '/user/123/form', array('id' => '123')),
             'user-by-id-friends' => array('GET', '/user/{id}/friends', '/user/123/friends', array('id' => '123')),
             'user-by-id-friends-with-id' => array('GET', '/user/{id}/friends/{groupid}', '/user/123/friends/1', array('id' => '123', 'groupid' => 1)),
-            'entity-by-id-form' => array('GET', '/{entity}/{id}/form', '/friend/123/form', array('entity' => '', 'friend' => '123')),
+            'entity-by-id-form' => array('GET', '/{entity}/{id}/form', '/friend/123/form', array('entity' => 'friend', 'id' => '123')),
             'entity-by-id-form-test' => array('GET', '/{id}/test/{page:\d+}', '/123/test/1', array('id' => '123', 'page' => '1')),
             'two-params' => array('GET', '/{num}/{page:\d+}', '/123/23123', array('num' => '123', 'page' => '23123')),
             'user-by-id-node' => array('GET', '/user/{id}/n"$ode', '/user/123/n"$ode', array('id' => '123')),
             'user-by-id-node-with-id' => array('GET', '/user/{id}/n"$ode/{param}', '/user/123/n"$ode/321', array('id' => '123', 'param' => '321')),
-            'user-with-empty' => array('GET', '/user/{id}/get', '/user//get', array('id' => '123')),
-            'user-post-by-id' => array('POST', '/user/{id}/save', '/user/123/save', array('id' => '123'))
+            //'user-with-empty' => array('GET', '/user/{id}/get', '/user//get'),
+            'user-post-by-id' => array('POST', '/user/{id}/save', '/user/123/save', array('id' => '123')),
+            'user-post-by-id-param' => array('POST', '/user/{id}/save/{name}', '/user/123/save/vitaly', array('id' => '123', 'name' => 'vitaly')),
+            'user-post-by-id-param2' => array('POST', '/user/{id}/save/{name}/{group}', '/user/123/save/vitaly/students', array('id' => '123', 'name' => 'vitaly', 'group' => 'students')),
+            'user-post-by-id-param3' => array('POST', '/cms/gift/form/{id}', '/cms/gift/form/123', array('id' => '123')),
+            'user-post-by-id-param4' => array('POST', '/cms/gift/{id}/{search}', '/cms/gift/123/321', array('id' => '123', 'search' => '321')),
         );
 
         // Create routes collection
@@ -63,76 +68,18 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         file_put_contents(__DIR__.'/testLogic.php', '<?php '."\n".$routerLogic);
         require(__DIR__.'/testLogic.php');
 
-        $result = $this->routerLogic('/', Route::METHOD_GET);
-        $this->assertEquals('main-page', $result[0]);
-
-        $result = $this->routerLogic('/', Route::METHOD_POST);
-        $this->assertEquals(null, $result[0]);
-
-        $result = $this->routerLogic('/user/winners/', Route::METHOD_GET);
-        $this->assertEquals('user-winners-slash', $result[0]);
-
-        $result = $this->routerLogic('/123', Route::METHOD_GET);
-        $this->assertEquals('inner-page', $result[0]);
-        $this->assertArrayHasKey('page', $result[1]);
-
-        $result = $this->routerLogic('/123/23123', Route::METHOD_GET);
-        $this->assertEquals('two-params', $result[0]);
-
-        $result = $this->routerLogic('/user/123', Route::METHOD_GET);
-        $this->assertEquals('user-by-id', $result[0]);
-        $this->assertArrayHasKey('id', $result[1]);
-
-        $result = $this->routerLogic('/user/123/form', Route::METHOD_GET);
-        $this->assertEquals('user-by-id-form', $result[0]);
-        $this->assertArrayHasKey('id', $result[1]);
-
-        $result = $this->routerLogic('/user/123/friends', Route::METHOD_GET);
-        $this->assertEquals('user-by-id-friends', $result[0]);
-        $this->assertArrayHasKey('id', $result[1]);
-
-        $result = $this->routerLogic('/user/male/18+', Route::METHOD_GET);
-        $this->assertEquals('user-by-gender-age', $result[0]);
-        $this->assertArrayHasKey('gender', $result[1]);
-        $this->assertArrayHasKey('age', $result[1]);
-
-        $result = $this->routerLogic('/user/123/friends/321', Route::METHOD_GET);
-        $this->assertEquals('user-by-id-friends-with-id', $result[0]);
-        $this->assertArrayHasKey('id', $result[1]);
-        $this->assertArrayHasKey('groupid', $result[1]);
-
-        $result = $this->routerLogic('/friend/123/form', Route::METHOD_GET);
-        $this->assertEquals('entity-by-id-form', $result[0]);
-        $this->assertArrayHasKey('entity', $result[1]);
-        $this->assertArrayHasKey('id', $result[1]);
-
-        $result = $this->routerLogic('/123/test/1', Route::METHOD_GET);
-        $this->assertEquals('entity-by-id-form-test', $result[0]);
-        $this->assertArrayHasKey('id', $result[1]);
-        $this->assertArrayHasKey('page', $result[1]);
-
-        // We consider that all routes are having slash at the end
-        $result = $this->routerLogic('/user/', Route::METHOD_GET);
-        $this->assertEquals('user-home-without-slash', $result[0]);
-
-        $result = $this->routerLogic('/user', Route::METHOD_GET);
-        $this->assertEquals('user-home-without-slash', $result[0]);
-
-        $result = $this->routerLogic('/userlist/', Route::METHOD_GET);
-        $this->assertEquals('test-two-similar-fixed', $result[0]);
-
-        $result = $this->routerLogic('/user/123/n"$ode', Route::METHOD_GET);
-        $this->assertEquals('user-by-id-node', $result[0]);
-
-        $result = $this->routerLogic('/user/123/n"$ode/321', Route::METHOD_GET);
-        $this->assertEquals('user-by-id-node-with-id', $result[0]);
-
-        // Empty parameters are resolved to null route
-        $result = $this->routerLogic('/user//get', Route::METHOD_GET);
-        $this->assertEquals(null, $result[0]);
-
-        $result = $this->routerLogic('/user/123/save', Route::METHOD_POST);
-        $this->assertEquals('user-post-by-id', $result[0]);
-        $this->assertArrayHasKey('id', $result[1]);
+        foreach ($routeArray as $identifier => $routeData) {
+            if ($identifier === 'test-two-params-at-end'){
+                $a = 1;
+            }
+            $result = $this->routerLogic($routeData[2], $routeData[0]);
+            $this->assertEquals($identifier, $result[0]);
+            if (isset($routeData[3])) {
+                foreach ($routeData[3] as $key => $value) {
+                    $this->assertArrayHasKey($key, $result[1]);
+                    $this->assertEquals($value, $result[1][$key]);
+                }
+            }
+        }
     }
 }

@@ -59,7 +59,7 @@ class Branch
     /**
      * Set branch callback value.
      *
-     * @param callable $callback
+     * @param mixed $callback
      */
     public function setCallback($callback)
     {
@@ -134,7 +134,7 @@ class Branch
      */
     public function toLogicConditionCode($currentString = '$path', $offset = 0)
     {
-        $nodeValue = $this->nodeRegExpValue('name');
+        $nodeValue = $this->nodeValue();
         if ($this->isParametrized()) {
             $regularExpression = '';
             /** @var Node $node Iterate all nodes and gather them in "big" regular expression */
@@ -145,7 +145,7 @@ class Branch
                     // Add regular expression node
                     $regularExpression[] = '(?<' . $node->name . '>'.$filter.')';
                 } else {
-                    $regularExpression[] = $node->name;
+                    $regularExpression[] = preg_quote($node->name);
                 }
             }
             // If this is last parameter in logic force it to end with its pattern
@@ -174,12 +174,25 @@ class Branch
         return false;
     }
 
-    /** @return string Node regular expression or string representation */
-    public function nodeRegExpValue($valueName) {
+    /** @return string Node regular expression representation */
+    public function nodeRegExp()
+    {
         /** @var Node $node */
         $return = array();
         foreach ($this->node as $node) {
-            $return[] = $node->{$valueName};
+            $return[] = $node->regexp;
+        }
+
+        return implode('/', $return);
+    }
+
+    /** @return string Node string representation */
+    public function nodeValue()
+    {
+        /** @var Node $node */
+        $return = array();
+        foreach ($this->node as $node) {
+            $return[] = $node->name;
         }
 
         return implode('/', $return);
@@ -223,9 +236,9 @@ class Branch
     {
         if ($this->isParametrized()) {
             // Just remove matched from the string
-            return 'substr(' . $currentString . ', strlen($parameters[\'' . $this->nodeRegExpValue('name') . '\']) + 1)';
+            return 'substr(' . $currentString . ', strlen($matches[0]) + 1)';
         } else {
-            return 'substr(' . $currentString . ', ' . (strlen($this->nodeRegExpValue('name')) + 1) . ')';
+            return 'substr(' . $currentString . ', ' . (strlen($this->nodeValue()) + 1) . ')';
         }
     }
 
@@ -238,62 +251,79 @@ class Branch
      */
     protected function sorter(Branch $aBranch, Branch $bBranch)
     {
-        /**
-         * Rule #1
-         * Parametrized branch always has lower priority then textual branch.
-         */
-        if (!$aBranch->isParametrized() && $bBranch->isParametrized()) {
-            return -1;
-        } elseif ($aBranch->isParametrized() && !$bBranch->isParametrized()) {
-            return 1;
-        } elseif ($aBranch->isParametrized() && $bBranch->isParametrized()) {
-            /**
-             * Rule #2
-             * If both branches are parametrized then branch with set regexp filter has higher priority.
-             */
-            $aRegExp = $aBranch->nodeRegExpValue('regexp');
-            $bRegExp = $bBranch->nodeRegExpValue('regexp');
-            if (isset($aRegExp{1}) && !isset($bRegExp{1})) {
-                return -1;
-            } elseif (!isset($aRegExp{1}) && isset($bRegExp{1})) {
-                return 1;
-            } else {
-                /**
-                 * Rule #4
-                 * If both branches are parametrized and they have two length-equal string patterns then not
-                 * "deeper" branch has priority.
-                 */
-                return $aBranch->size < $bBranch->size ? 1 : -1;
-            }
-            /** TODO: We need to invent a way to compare regexp filter to define who is "wider" */
-        } else { // Both branches are not parametrized
-            /**
-             * Rule #4
-             * If both are not parametrized and one is final - we choose it as check for it more
-             * optimal in logic condition branches.
-             */
-            if (sizeof($aBranch->branches) === 0) {
-                return -1;
-            } elseif (sizeof($bBranch->branches === 0)) {
-                return 1;
-            }
+        for ($i = 0, $size = max(sizeof($aBranch->node), sizeof($aBranch->node)); $i < $size; $i++) {
+            /** @var Node $aNode */
+            $aNode = &$aBranch->node[$i];
+            /** @var Node $bNode */
+            $bNode = &$bBranch->node[$i];
 
             /**
-             * Rule #3
-             * If both branches are not parametrized then branch with shorter pattern string has higher priority.
+             * Rule #1
+             * Parametrized branch always has lower priority then textual branch.
              */
-            if (strlen($aBranch->nodeRegExpValue('name')) > strlen($bBranch->nodeRegExpValue('name'))) {
-                return 1;
-            } elseif (strlen($aBranch->nodeRegExpValue('name')) < strlen($bBranch->nodeRegExpValue('name'))) {
+            if (!$aNode->parametrized && $bNode->parametrized) {
                 return -1;
-            } else {
+            } elseif ($aNode->parametrized && !$bNode->parametrized) {
+                return 1;
+            } elseif ($aNode->parametrized && $bNode->parametrized) {
+                /**
+                 * Rule #3
+                 * If both are parametrized we prioritize the one with more nodes
+                 */
+//            if (sizeof($aBranch->node) > sizeof($bBranch->node)) {
+//                return -1;
+//            } elseif (sizeof($aBranch->node) < sizeof($bBranch->node)) {
+//                return 1;
+//            }
+                /**
+                 * Rule #2
+                 * If both branches are parametrized then branch with set regexp filter has higher priority.
+                 */
+                $aRegExp = $aNode->regexp;
+                $bRegExp = $bNode->regexp;
+                if (isset($aRegExp{1}) && !isset($bRegExp{1})) {
+                    return -1;
+                } elseif (!isset($aRegExp{1}) && isset($bRegExp{1})) {
+                    return 1;
+                } else {
+                    /**
+                     * Rule #4
+                     * If both branches are parametrized and they have two length-equal string patterns then not
+                     * "deeper" branch has priority.
+                     */
+                    return $aBranch->size < $bBranch->size ? 1 : -1;
+                }
+                /** TODO: We need to invent a way to compare regexp filter to define who is "wider" */
+            } else { // Both branches are not parametrized
                 /**
                  * Rule #4
-                 * If both branches are not parametrized and they have two length-equal string patterns then not
-                 * "deeper" branch has priority.
+                 * If both are not parametrized and one is final - we choose it as check for it more
+                 * optimal in logic condition branches.
                  */
-                return $aBranch->size > $bBranch->size ? 1 : -1;
+//            if (sizeof($aBranch->branches) === 0) {
+//                return -1;
+//            } elseif (sizeof($bBranch->branches === 0)) {
+//                return 1;
+//            }
+
+                /**
+                 * Rule #3
+                 * If both branches are not parametrized then branch with shorter pattern string has higher priority.
+                 */
+                if (strlen($aNode->name) > strlen($bNode->name)) {
+                    return -1;
+                } elseif (strlen($aNode->name) < strlen($bNode->name)) {
+                    return 1;
+                } else {
+                    /**
+                     * Rule #4
+                     * If both branches are not parametrized and they have two length-equal string patterns then not
+                     * "deeper" branch has priority.
+                     */
+                    return $aBranch->size > $bBranch->size ? 1 : -1;
+                }
             }
         }
+
     }
 }
