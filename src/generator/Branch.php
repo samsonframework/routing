@@ -134,7 +134,7 @@ class Branch
      */
     public function toLogicConditionCode($currentString = '$path', $offset = 0)
     {
-        $nodeValue = $this->nodeValue();
+        $nodeValue = $this->nodeRegExpValue('name');
         if ($this->isParametrized()) {
             $regularExpression = '';
             /** @var Node $node Iterate all nodes and gather them in "big" regular expression */
@@ -174,25 +174,13 @@ class Branch
         return false;
     }
 
-    /** @return string Node regular expression representation */
-    public function nodeRegExp()
-    {
-        /** @var Node $node */
-        $return = array();
-        foreach ($this->node as $node) {
-            $return[] = $node->regexp;
-        }
-
-        return implode('/', $return);
-    }
-
     /** @return string Node string representation */
-    public function nodeValue()
+    public function nodeRegExpValue($valueName)
     {
         /** @var Node $node */
         $return = array();
         foreach ($this->node as $node) {
-            $return[] = $node->name;
+            $return[] = $node->{$valueName};
         }
 
         return implode('/', $return);
@@ -238,7 +226,7 @@ class Branch
             // Just remove matched from the string
             return 'substr(' . $currentString . ', strlen($matches[0]) + 1)';
         } else {
-            return 'substr(' . $currentString . ', ' . (strlen($this->nodeValue()) + 1) . ')';
+            return 'substr(' . $currentString . ', ' . (strlen($this->nodeRegExpValue('name')) + 1) . ')';
         }
     }
 
