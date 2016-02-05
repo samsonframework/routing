@@ -146,7 +146,7 @@ class Branch
                     // Use default parameter filter
                     $filter = (isset($node->regexp{1}) ? $node->regexp : '[^\/]+');
                     // Add regular expression node
-                    $regularExpression[] = '(?<' . $node->name . '>'.$filter.')';
+                    $regularExpression[] = '(?<' . $node->name . '>' . $filter . ')';
                 } else {
                     $regularExpression[] = preg_quote($node->name);
                 }
@@ -155,7 +155,7 @@ class Branch
             $regularExpression = count($this->branches) ? implode('\/', $regularExpression) : implode('\/', $regularExpression) . '$';
 
             // Generate regular expression matching condition
-            return 'preg_match(\'/^'.$regularExpression.'/i\', ' . $currentString . ', $matches)';
+            return 'preg_match(\'/^' . $regularExpression . '/i\', ' . $currentString . ', $matches)';
         } elseif (count($this->branches)) {
             return 'substr(' . $currentString . ', ' . $offset . ', ' . strlen($nodeValue) . ') === \'' . $nodeValue . '\'';
         } else { // This is last condition in branch it should match
@@ -239,6 +239,76 @@ class Branch
     }
 
     /**
+     * Both branches are not parametrized
+     * @param $i
+     * @param $aBranch
+     * @param $bBranch
+     * @return int
+     */
+    public function rulesBothBranchesNotParametrized($i, $aBranch, $bBranch)
+    {
+        /** @var Node $aNode */
+        $aNode = &$aBranch->node[$i];
+        /** @var Node $bNode */
+        $bNode = &$bBranch->node[$i];
+
+        /**
+         * Rule #3
+         * If both branches are not parametrized then branch with shorter pattern string has higher priority.
+         */
+        if (strlen($aNode->name) > strlen($bNode->name)) {
+            return -1;
+        } elseif (strlen($aNode->name) < strlen($bNode->name)) {
+            return 1;
+        } else {
+            /**
+             * Rule #4
+             * If both branches are not parametrized and they have two length-equal string patterns then not
+             * "deeper" branch has priority.
+             */
+            return $aBranch->size > $bBranch->size ? 1 : -1;
+        }
+    }
+
+    /**
+     * Rules:
+     * If both branches are parametrized then branch with set regexp filter has higher priority.
+     * If both branches are parametrized and they have two length-equal string patterns then not
+     *
+     * @param $i
+     * @param $aBranch
+     * @param $bBranch
+     * @return int
+     */
+    public function rulesBothBranchesParametrizedRegexp($i, $aBranch, $bBranch)
+    {
+        /** @var Node $aNode */
+        $aNode = &$aBranch->node[$i];
+        /** @var Node $bNode */
+        $bNode = &$bBranch->node[$i];
+
+        /**
+         * Rule #2
+         * If both branches are parametrized then branch with set regexp filter has higher priority.
+         */
+        $aRegExp = $aNode->regexp;
+        $bRegExp = $bNode->regexp;
+
+        if (isset($aRegExp{1}) && !isset($bRegExp{1})) {
+            return -1;
+        } elseif (!isset($aRegExp{1}) && isset($bRegExp{1})) {
+            return 1;
+        } else {
+            /**
+             * Rule #4
+             * If both branches are parametrized and they have two length-equal string patterns then not
+             * "deeper" branch has priority.
+             */
+            return $aBranch->size < $bBranch->size ? 1 : -1;
+        }
+    }
+
+    /**
      * Compare two branch and define which has greater priority.
      *
      * @param Branch $aBranch
@@ -259,74 +329,13 @@ class Branch
              */
             if (!$aNode->parametrized && $bNode->parametrized) {
                 return -1;
-            }
-
-            elseif ($aNode->parametrized && !$bNode->parametrized) {
+            } elseif ($aNode->parametrized && !$bNode->parametrized) {
                 return 1;
-            }
-
-            elseif ($aNode->parametrized && $bNode->parametrized) {
-                /**
-                 * Rule #3
-                 * If both are parametrized we prioritize the one with more nodes
-                 */
-//            if (sizeof($aBranch->node) > sizeof($bBranch->node)) {
-//                return -1;
-//            } elseif (sizeof($aBranch->node) < sizeof($bBranch->node)) {
-//                return 1;
-//            }
-                /**
-                 * Rule #2
-                 * If both branches are parametrized then branch with set regexp filter has higher priority.
-                 */
-                $aRegExp = $aNode->regexp;
-                $bRegExp = $bNode->regexp;
-                if (isset($aRegExp{1}) && !isset($bRegExp{1})) {
-                    return -1;
-                } elseif (!isset($aRegExp{1}) && isset($bRegExp{1})) {
-                    return 1;
-                } else {
-                    /**
-                     * Rule #4
-                     * If both branches are parametrized and they have two length-equal string patterns then not
-                     * "deeper" branch has priority.
-                     */
-                    return $aBranch->size < $bBranch->size ? 1 : -1;
-                }
+            } elseif ($aNode->parametrized && $bNode->parametrized) {
+                return $this->rulesBothBranchesParametrizedRegexp($i, $aBranch, $bBranch);
                 /** TODO: We need to invent a way to compare regexp filter to define who is "wider" */
-            }
-
-
-
-
-            else { // Both branches are not parametrized
-                /**
-                 * Rule #4
-                 * If both are not parametrized and one is final - we choose it as check for it more
-                 * optimal in logic condition branches.
-                 */
-//            if (sizeof($aBranch->branches) === 0) {
-//                return -1;
-//            } elseif (sizeof($bBranch->branches === 0)) {
-//                return 1;
-//            }
-
-                /**
-                 * Rule #3
-                 * If both branches are not parametrized then branch with shorter pattern string has higher priority.
-                 */
-                if (strlen($aNode->name) > strlen($bNode->name)) {
-                    return -1;
-                } elseif (strlen($aNode->name) < strlen($bNode->name)) {
-                    return 1;
-                } else {
-                    /**
-                     * Rule #4
-                     * If both branches are not parametrized and they have two length-equal string patterns then not
-                     * "deeper" branch has priority.
-                     */
-                    return $aBranch->size > $bBranch->size ? 1 : -1;
-                }
+            } else {
+                return $this->rulesBothBranchesNotParametrized($i, $aBranch, $bBranch);
             }
         }
     }
