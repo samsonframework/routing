@@ -46,6 +46,61 @@ class Structure
     /** @var array Collection of existing http methods */
     protected $httpMethods = array();
 
+
+    /**
+     * Split route pattern into parts by its delimiter
+     * @param $routeParts
+     * @param $currentBranch
+     * @param $route
+     */
+    public function splitRoutePattern($routeParts, $currentBranch, $route)
+    {
+        for ($i = 0, $size = sizeof($routeParts); $i < $size; $i++) {
+            $routePart = $routeParts[$i];
+            // Try to find matching branch by its part
+            $tempBranch = $currentBranch->find($routePart);
+
+            // Define if this is last part so this branch should match route
+            $matchedRoute = $i == $size - 1 ? $route : null;
+
+            // We have not found this branch
+            if (null === $tempBranch) {
+                // Create new inner branch and store pointer to it
+                $currentBranch = $currentBranch->add($routePart, $matchedRoute);
+            } else { // Store pointer to found branch
+                $currentBranch = $tempBranch;
+
+                // TODO: this should be improved
+                // If we have created this branch before but now we got route for it
+                if (isset($matchedRoute)) {
+                    // Store route identifier
+                    $currentBranch->identifier = $matchedRoute->identifier;
+                    $currentBranch->setCallback($matchedRoute->callback);
+                }
+            }
+        }
+    }
+
+    /**
+     * Build routing logic branches
+     *
+     * @param %routes
+     */
+    public function routeBuild($routes)
+    {
+        foreach ($routes as $route) {
+            // Set branch pointer to root HTTP method branch
+            $currentBranch = $this->logic->find($route->method);
+
+            // We should count "/" route here
+            $routeParts = $route->pattern == '/' ? array('/')
+                : array_values(array_filter(explode(Route::DELIMITER, $route->pattern)));
+
+            // Split route pattern into parts by its delimiter
+            $this->splitRoutePattern($routeParts, $currentBranch, $route);
+        }
+    }
+
     /**
      * Structure constructor.
      *
@@ -69,40 +124,7 @@ class Structure
         }
 
         /** @var Route $route Build routing logic branches */
-        foreach ($routes as $route) {
-            // Set branch pointer to root HTTP method branch
-            $currentBranch = $this->logic->find($route->method);
-
-            // We should count "/" route here
-            $routeParts = $route->pattern == '/' ? array('/')
-                : array_values(array_filter(explode(Route::DELIMITER, $route->pattern)));
-
-            // Split route pattern into parts by its delimiter
-            for ($i = 0, $size = sizeof($routeParts); $i < $size; $i++) {
-                $routePart = $routeParts[$i];
-                // Try to find matching branch by its part
-                $tempBranch = $currentBranch->find($routePart);
-
-                // Define if this is last part so this branch should match route
-                $matchedRoute = $i == $size - 1 ? $route : null;
-
-                // We have not found this branch
-                if (null === $tempBranch) {
-                    // Create new inner branch and store pointer to it
-                    $currentBranch = $currentBranch->add($routePart, $matchedRoute);
-                } else { // Store pointer to found branch
-                    $currentBranch = $tempBranch;
-
-                    // TODO: this should be improved
-                    // If we have created this branch before but now we got route for it
-                    if (isset($matchedRoute)) {
-                        // Store route identifier
-                        $currentBranch->identifier = $matchedRoute->identifier;
-                        $currentBranch->setCallback($matchedRoute->callback);
-                    }
-                }
-            }
-        }
+        $this->routeBuild($routes);
 
         $this->optimizeBranchesWithRoutes($this->logic);
 
