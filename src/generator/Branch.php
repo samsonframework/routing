@@ -78,7 +78,7 @@ class Branch
     public function find($routePart)
     {
         foreach ($this->branches as $identifier => $branch) {
-            if ($identifier === $routePart) {
+            if ($identifier == $routePart) {
                 return $branch;
             }
         }
