@@ -46,22 +46,24 @@ class Structure
     /** @var array Collection of existing http methods */
     protected $httpMethods = array();
 
-
     /**
      * Split route pattern into parts by its delimiter
+     *
      * @param $routeParts
-     * @param $currentBranch
      * @param $route
      */
-    public function splitRoutePattern($routeParts, $currentBranch, $route)
+    public function splitRoutePattern($routeParts, $route)
     {
-        for ($i = 0, $size = sizeof($routeParts); $i < $size; $i++) {
+        // Set branch pointer to root HTTP method branch
+        $currentBranch = $this->logic->find($route->method);
+
+        for ($i = 0, $size = count($routeParts); $i < $size; $i++) {
             $routePart = $routeParts[$i];
             // Try to find matching branch by its part
             $tempBranch = $currentBranch->find($routePart);
 
             // Define if this is last part so this branch should match route
-            $matchedRoute = $i == $size - 1 ? $route : null;
+            $matchedRoute = $i === $size - 1 ? $route : null;
 
             // We have not found this branch
             if (null === $tempBranch) {
@@ -72,7 +74,7 @@ class Structure
 
                 // TODO: this should be improved
                 // If we have created this branch before but now we got route for it
-                if (isset($matchedRoute)) {
+                if ($matchedRoute !== null) {
                     // Store route identifier
                     $currentBranch->identifier = $matchedRoute->identifier;
                     $currentBranch->setCallback($matchedRoute->callback);
@@ -84,20 +86,17 @@ class Structure
     /**
      * Build routing logic branches
      *
-     * @param %routes
+     * @param RouteCollection $routes
      */
     public function routeBuild($routes)
     {
         foreach ($routes as $route) {
-            // Set branch pointer to root HTTP method branch
-            $currentBranch = $this->logic->find($route->method);
-
             // We should count "/" route here
-            $routeParts = $route->pattern == '/' ? array('/')
+            $routeParts = $route->pattern === '/' ? array('/')
                 : array_values(array_filter(explode(Route::DELIMITER, $route->pattern)));
 
             // Split route pattern into parts by its delimiter
-            $this->splitRoutePattern($routeParts, $currentBranch, $route);
+            $this->splitRoutePattern($routeParts, $route);
         }
     }
 
@@ -112,7 +111,7 @@ class Structure
         $this->generator = $generator;
 
         // Add root branch object
-        $this->logic = new Branch("");
+        $this->logic = new Branch('');
 
         // Collect all HTTP method that this routes collection has
         $this->httpMethods = array();
@@ -151,7 +150,7 @@ class Structure
         /** @var Branch $branch */
         foreach ($parent->branches as &$branch) {
             // If inner branch is final and has a route
-            if ($branch->hasRoute() && !$branch->isParametrized() && sizeof($branch->branches)) {
+            if ($branch->hasRoute() && !$branch->isParametrized() && count($branch->branches)) {
                 // Create a new one one level higher
                 $parent->branches[$branch->patternPath.'$'] = new Branch($branch->patternPath, $parent);
                 $parent->branches[$branch->patternPath.'$']->identifier = $branch->identifier;
@@ -176,7 +175,7 @@ class Structure
      */
     protected function optimizeBranches(Branch &$parent)
     {
-        if (sizeof($parent->branches) === 1) {
+        if (count($parent->branches) === 1) {
             if (!$parent->hasRoute()) {
                 /** @var Branch $branch */
                 $branch = end($parent->branches);
@@ -188,7 +187,7 @@ class Structure
                 // Add inner branches
                 $parent->branches = array_merge($parent->branches, $branch->branches);
 
-                if (isset($branch->identifier{1})) {
+                if (($branch->identifier{1}) !== null) {
                     $parent->identifier = $branch->identifier;
                     $parent->callback = $branch->callback;
                 }
@@ -237,7 +236,7 @@ class Structure
         ;
 
         // Do not generate if we have no http methods supported
-        if (sizeof($this->httpMethods)) {
+        if (count($this->httpMethods)) {
             // Build routes for first method
             $this->buildRoutesByMethod(array_shift($this->httpMethods));
 
@@ -269,7 +268,7 @@ class Structure
         // If this branch has route
         if ($parent->hasRoute()) {
             // Generate condition if we have inner branches
-            if (sizeof($parent->branches)) {
+            if (count($parent->branches)) {
                 $this->generator->defIfCondition('' . $pathValue . ' === false');
                 $conditionStarted = true;
             }
@@ -323,10 +322,10 @@ class Structure
         /**
          * Optimization to remove nested string operations - we create temporary $path variables
          */
-        $pathVariable = '$path' . rand(0, 99999);
+        $pathVariable = '$path' . mt_rand(0, 99999);
 
         // Do not output new $path variable creation if this is logic end
-        if (sizeof($branch->branches)) {
+        if (count($branch->branches)) {
             $this->generator->newLine($pathVariable . ' = ' . $branch->removeMatchedPathCode($pathValue) . ';');
         }
 
