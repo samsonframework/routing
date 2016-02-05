@@ -239,7 +239,7 @@ class Branch
      */
     protected function sorter(Branch $aBranch, Branch $bBranch)
     {
-        for ($i = 0, $size = max(sizeof($aBranch->node), sizeof($aBranch->node)); $i < $size; $i++) {
+        for ($i = 0, $size = max(sizeof($aBranch->node), sizeof($bBranch->node)); $i < $size; $i++) {
             /** @var Node $aNode */
             $aNode = &$aBranch->node[$i];
             /** @var Node $bNode */
