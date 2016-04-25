@@ -12,10 +12,6 @@ see performance comparison with other popular routers [click here](http://github
 [![Total Downloads](https://poser.pugx.org/samsonframework/routing/downloads.svg)](https://packagist.org/packages/samsonframework/routing)
 [![Stories in Ready](https://badge.waffle.io/samsonframework/routing.png?label=ready&title=Ready)](https://waffle.io/samsonframework/routing)
 
-## TODO
- * ```25/01/2016``` DOES NOT(yet) support setter injections.
- * ```25/01/2016``` DOES NOT(yet) support existing instances as dependencies.
- 
 ##Documentation
 Follow [official documentation](http://github.com/samsonframework/routing/blob/master/docs/Index.md).
  
