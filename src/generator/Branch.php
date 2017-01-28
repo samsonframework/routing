@@ -139,7 +139,7 @@ class Branch
     {
         $nodeValue = $this->nodeRegExpValue('name');
         if ($this->isParametrized()) {
-            $regularExpression = '';
+            $regularExpression = array();
             /** @var Node $node Iterate all nodes and gather them in "big" regular expression */
             foreach ($this->node as $node) {
                 if ($node->parametrized) {
