@@ -8,13 +8,14 @@ namespace samsonframework\routing;
 
 use samsonframework\generator\ClassGenerator;
 use samsonframework\stringconditiontree\StringConditionTree;
+use samsonframework\stringconditiontree\TreeNode;
 
 /**
- * Routing function class generator.
+ * Routing function class builder.
  *
  * @author Vitaly Egorov <egorov@samsonos.com>
  */
-class Generator
+class RouterBuilder
 {
     /** @var StringConditionTree Strings condition tree generator */
     protected $stringsTree;
@@ -23,7 +24,7 @@ class Generator
     protected $classGenerator;
 
     /**
-     * Generator constructor.
+     * Router builder constructor.
      *
      * @param StringConditionTree $stringsTree Strings condition tree generator
      * @param ClassGenerator      $classGenerator PHP class code generator
@@ -32,5 +33,23 @@ class Generator
     {
         $this->classGenerator = $classGenerator;
         $this->stringsTree = $stringsTree;
+    }
+
+    public function build(RouteCollection $routes)
+    {
+        $routeStrings = [];
+
+        /** @var Route $route */
+        foreach ($routes as $route) {
+            $routeStrings[$route->method][$route->pattern] = $route->identifier;
+        }
+
+        /** @var TreeNode[] $treeNodes */
+        $treeNodes = [];
+        foreach ($routeStrings as $httpMethod => $strings) {
+            $treeNodes[$httpMethod] = $this->stringsTree->process($strings);
+        }
+
+        return $treeNodes;
     }
 }

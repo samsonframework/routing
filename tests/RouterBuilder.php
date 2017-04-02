@@ -7,9 +7,13 @@
  */
 namespace samsonframework\routing\tests;
 
+use samsonframework\generator\ClassGenerator;
+use samsonframework\routing\RouterBuilder;
 use samsonframework\routing\generator\Structure;
 use samsonframework\routing\Route;
 use samsonframework\routing\RouteCollection;
+use samsonframework\stringconditiontree\StringConditionTree;
+
 
 class GeneratorTest extends \PHPUnit_Framework_TestCase
 {
@@ -51,6 +55,8 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
             'user-post-by-id-param3' => array('POST', '/cms/gift/form/{id}', '/cms/gift/form/123', array('id' => '123')),
             'user-post-by-id-param4' => array('POST', '/cms/gift/{id}/{search}', '/cms/gift/123/321', array('id' => '123', 'search' => '321')),
         );
+
+        $routerBuilder = new RouterBuilder(new StringConditionTree(), new ClassGenerator());
 
         // Create routes collection
         $routes = new RouteCollection();

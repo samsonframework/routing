@@ -21,7 +21,8 @@
     "samsonframework/string-condition-tree": "^1.0.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "5.*"
+    "phpunit/phpunit": "5.*",
+    "samsonphp/generator": "*"
   },
   "license": "Open Software License (OSL) v 3.0",
   "homepage": "http://samsonos.com/",

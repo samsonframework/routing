@@ -4,56 +4,9 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "0ef292b7a538b8acef6a8a6e13121e2b",
-    "content-hash": "c925d0695eb737bfe5e774866922aedd",
+    "hash": "57a4c4a24c9f459ebc6da11b61f5cd46",
+    "content-hash": "965b490635cde404f7a0a5651ebf33ce",
     "packages": [
-        {
-            "name": "samsonphp/generator",
-            "version": "1.0.5",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/SamsonPHP/generator.git",
-                "reference": "6a9b094a501439b4fa464a145e74d77a6b87895e"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/SamsonPHP/generator/zipball/6a9b094a501439b4fa464a145e74d77a6b87895e",
-                "reference": "6a9b094a501439b4fa464a145e74d77a6b87895e",
-                "shasum": ""
-            },
-            "require-dev": {
-                "phpunit/phpunit": "5.*"
-            },
-            "type": "library",
-            "extra": {
-                "samson_module_ignore": "1"
-            },
-            "autoload": {
-                "psr-4": {
-                    "samsonphp\\generator\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Open Software License (OSL) v 3.0"
-            ],
-            "authors": [
-                {
-                    "name": "Vitaly Iegorov",
-                    "email": "egorov@samsonos.com"
-                }
-            ],
-            "description": "SamsonPHP code generator",
-            "homepage": "http://samsonos.com/",
-            "keywords": [
-                "code",
-                "generator",
-                "samsonphp"
-            ],
-            "time": "2016-08-09 13:08:31"
-        }
-    ],
-    "packages-dev": [
         {
             "name": "doctrine/instantiator",
             "version": "1.0.5",
@@ -750,6 +703,102 @@
             "time": "2016-12-08 20:27:08"
         },
         {
+            "name": "samsonframework/generator",
+            "version": "1.1.10",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/samsonframework/generator.git",
+                "reference": "6daa93509810c77c69ea230bf0b1da158844a000"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/samsonframework/generator/zipball/6daa93509810c77c69ea230bf0b1da158844a000",
+                "reference": "6daa93509810c77c69ea230bf0b1da158844a000",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "5.*",
+                "satooshi/php-coveralls": "*"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "samsonframework\\generator\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Open Software License (OSL) v 3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Vitaly Iegorov",
+                    "email": "egorov@samsonos.com"
+                }
+            ],
+            "description": "SamsonFramework code generator",
+            "homepage": "http://samsonos.com/",
+            "keywords": [
+                "code",
+                "generator",
+                "samsonframework"
+            ],
+            "time": "2016-10-04 08:19:41"
+        },
+        {
+            "name": "samsonframework/string-condition-tree",
+            "version": "1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/samsonframework/string-condition-tree.git",
+                "reference": "7f779b163ebf9bb86de4987acb5b711ce19a2ffe"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/samsonframework/string-condition-tree/zipball/7f779b163ebf9bb86de4987acb5b711ce19a2ffe",
+                "reference": "7f779b163ebf9bb86de4987acb5b711ce19a2ffe",
+                "shasum": ""
+            },
+            "require": {
+                "phpunit/phpunit": "5.*"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "samsonframework\\stringconditiontree\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Open Software License (OSL) v 3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Vitaly Iegorov",
+                    "email": "egorov@samsonos.com"
+                }
+            ],
+            "description": "SamsonFramework string condition tree generator",
+            "homepage": "http://samsonos.com/",
+            "keywords": [
+                "condition",
+                "condition tree",
+                "samsonframework",
+                "tree"
+            ],
+            "time": "2017-04-01 08:34:34"
+        },
+        {
             "name": "sebastian/code-unit-reverse-lookup",
             "version": "1.0.1",
             "source": {
@@ -1366,6 +1415,53 @@
                 "validate"
             ],
             "time": "2016-11-23 20:04:58"
+        }
+    ],
+    "packages-dev": [
+        {
+            "name": "samsonphp/generator",
+            "version": "1.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/SamsonPHP/generator.git",
+                "reference": "6a9b094a501439b4fa464a145e74d77a6b87895e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/SamsonPHP/generator/zipball/6a9b094a501439b4fa464a145e74d77a6b87895e",
+                "reference": "6a9b094a501439b4fa464a145e74d77a6b87895e",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "5.*"
+            },
+            "type": "library",
+            "extra": {
+                "samson_module_ignore": "1"
+            },
+            "autoload": {
+                "psr-4": {
+                    "samsonphp\\generator\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Open Software License (OSL) v 3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Vitaly Iegorov",
+                    "email": "egorov@samsonos.com"
+                }
+            ],
+            "description": "SamsonPHP code generator",
+            "homepage": "http://samsonos.com/",
+            "keywords": [
+                "code",
+                "generator",
+                "samsonphp"
+            ],
+            "time": "2016-08-09 13:08:31"
         }
     ],
     "aliases": [],
