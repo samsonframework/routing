@@ -27,7 +27,8 @@ class CoreTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException('\samsonframework\routing\exception\FailedLogicCreation');
 
-        $core = new Core(new RouteCollection());
+        $routes = new RouteCollection();
+        $core = new Core($routes);
     }
 
     public function testCreation()
@@ -53,7 +54,8 @@ class CoreTest extends \PHPUnit_Framework_TestCase
 
     public function testFailedRouting()
     {
-        $core = new Core(new RouteCollection());
+        $routes = new RouteCollection();
+        $core = new Core($routes);
 
         /** @var Route $route */
         $route = null;
