@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 /**
  * Created by PhpStorm.
  * User: egorov
@@ -20,7 +20,7 @@ class Core
     const ROUTING_LOGIC_FUNCTION = '__router';
 
     /** @var RouteCollection Collection of all application routes */
-    protected $routes = array();
+    protected $routes;
 
     /**
      * Core constructor.
@@ -28,7 +28,7 @@ class Core
      * @param RouteCollection $routes Routes collection for dispatching
      * @throws FailedLogicCreation
      */
-    public function __construct(RouteCollection &$routes)
+    public function __construct(RouteCollection $routes)
     {
         if (!function_exists(self::ROUTING_LOGIC_FUNCTION)) {
             throw new FailedLogicCreation();
