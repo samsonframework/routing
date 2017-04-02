@@ -42,9 +42,9 @@ class Core
      *
      * @param string $path HTTP request path
      * @param string $method HTTP request method
-     * @return null|array Dispatched route metadata
+     * @return array Dispatched route metadata
      */
-    public function dispatch($path, $method)
+    public function dispatch($path, $method): array
     {
         // Perform routing logic
         return call_user_func(self::ROUTING_LOGIC_FUNCTION, $path, $method);
