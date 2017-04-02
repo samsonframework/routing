@@ -17,7 +17,8 @@
     }
   ],
   "require": {
-    "samsonphp/generator": "*"
+    "samsonframewrork/generator": "^1.0.0",
+    "samsonframework/string-condition-tree": "^1.0.0"
   },
   "require-dev": {
     "phpunit/phpunit": "5.*"
@@ -25,11 +26,15 @@
   "license": "Open Software License (OSL) v 3.0",
   "homepage": "http://samsonos.com/",
   "autoload": {
-    "classmap": ["src/"],
     "psr-4": {
       "samsonframework\\routing\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "samsonframework\\routing\\tests\\": "tests/"
+    }
+  }
   "config":{
     "github-protocols":["https"]
   }
