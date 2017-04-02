@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 /**
  * Created by PhpStorm.
  * User: VITALYIEGOROV
@@ -65,7 +65,8 @@ class Route
         $this->pattern = $pattern;
         $this->callback = $callback;
         $this->method = $method;
+
         // Every route should have an identifier otherwise create unique
-        $this->identifier = isset($identifier) ? $identifier : uniqid('route');
+        $this->identifier = null !== $identifier ? $identifier : uniqid('route', true);
     }
 }
