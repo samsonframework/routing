@@ -15,7 +15,6 @@ see performance comparison with other popular routers [click here](http://github
 [![Stories in Ready](https://badge.waffle.io/samsonframework/routing.png?label=ready&title=Ready)](https://waffle.io/samsonframework/routing)
 [![Inline docs](http://inch-ci.org/github/samsonframework/routing.svg?branch=master)](http://inch-ci.org/github/samsonframework/routing)
 
-
 ##Documentation
 Follow [official documentation](http://github.com/samsonframework/routing/blob/master/docs/Index.md).
  
