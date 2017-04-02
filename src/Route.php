@@ -14,28 +14,11 @@ namespace samsonframework\routing;
  */
 class Route
 {
-    /** Route method identifiers */
-    const METHOD_ANY = 'ANY';
-    const METHOD_GET = 'GET';
-    const METHOD_POST = 'POST';
-    const METHOD_PUT = 'PUT';
-    const METHOD_DELETE = 'DELETE';
-    const METHOD_UPDATE = 'UPDATE';
-
     /** Route identifier key */
     const ROUTE_KEY = '_0';
 
     /** Route parts delimiter */
     const DELIMITER = '/';
-
-    /** @var array Collection of all supported HTTP methods */
-    public static $httpMethods = array(
-        self::METHOD_GET,
-        self::METHOD_POST,
-        self::METHOD_PUT,
-        self::METHOD_DELETE,
-        self::METHOD_UPDATE
-    );
 
     /** RegExp for parsing parameters in pattern placeholder */
     const PARAMETERS_FILTER_PATTERN = '/{(?<name>[^}:]+)(\t*:\t*(?<filter>[^}]+))?}/i';
@@ -44,7 +27,7 @@ class Route
     public $identifier;
 
     /** @var string HTTP method supported */
-    public $method = self::METHOD_ANY;
+    public $method = HttpMethod::METHOD_ANY;
 
     /** @var string Internal pattern for matching */
     public $pattern;
