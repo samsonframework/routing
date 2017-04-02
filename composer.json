@@ -2,8 +2,13 @@
   "name": "samsonframework/routing",
   "description": "SamsonFramework routing package",
   "keywords": [
+    "samsonframework",
+    "routing",
     "router",
-    "routing"
+    "PLD router",
+    "PLD routing",
+    "fastest router",
+    "fastest routing"
   ],
   "authors": [
     {
@@ -15,9 +20,8 @@
     "samsonphp/generator": "*"
   },
   "require-dev": {
-    "phpunit/phpunit": "4.*"
+    "phpunit/phpunit": "5.*"
   },
-  "minimum-stability": "dev",
   "license": "Open Software License (OSL) v 3.0",
   "homepage": "http://samsonos.com/",
   "autoload": {
