@@ -6,8 +6,11 @@
 
 namespace samsonframework\routing;
 
+use samsonframework\generator\ClassGenerator;
+use samsonframework\stringconditiontree\StringConditionTree;
+
 /**
- * Class Generator
+ * Routing function class generator.
  *
  * @author Vitaly Egorov <egorov@samsonos.com>
  */
@@ -16,10 +19,18 @@ class Generator
     /** @var StringConditionTree Strings condition tree generator */
     protected $stringsTree;
 
-    /** @var Generator PHP code generator */
-    protected $phpGenerator;
+    /** @var ClassGenerator PHP class code generator */
+    protected $classGenerator;
 
-    public function __construct()
+    /**
+     * Generator constructor.
+     *
+     * @param StringConditionTree $stringsTree Strings condition tree generator
+     * @param ClassGenerator      $classGenerator PHP class code generator
+     */
+    public function __construct(StringConditionTree $stringsTree, ClassGenerator $classGenerator)
     {
+        $this->classGenerator = $classGenerator;
+        $this->stringsTree = $stringsTree;
     }
 }
