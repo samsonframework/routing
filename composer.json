@@ -34,7 +34,7 @@
     "psr-4": {
       "samsonframework\\routing\\tests\\": "tests/"
     }
-  }
+  },
   "config":{
     "github-protocols":["https"]
   }
