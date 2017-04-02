@@ -17,7 +17,7 @@
     }
   ],
   "require": {
-    "samsonframewrork/generator": "^1.0.0",
+    "samsonframework/generator": "^1.0.0",
     "samsonframework/string-condition-tree": "^1.0.0"
   },
   "require-dev": {
