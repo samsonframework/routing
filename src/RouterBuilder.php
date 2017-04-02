@@ -23,6 +23,9 @@ class RouterBuilder
     /** @var ClassGenerator PHP class code generator */
     protected $classGenerator;
 
+    /** @var array Routes collection map */
+    protected $parameters = [];
+
     /**
      * Router builder constructor.
      *
@@ -33,6 +36,8 @@ class RouterBuilder
     {
         $this->classGenerator = $classGenerator;
         $this->stringsTree = $stringsTree;
+
+        $this->stringsTree->setTreeNodeValueHandler([$this, 'treeNodeValueHandler']);
     }
 
     public function build(RouteCollection $routes)
@@ -40,7 +45,7 @@ class RouterBuilder
         $routeStrings = [];
 
         /** @var string[] $parameters Collection of parameters placeholders */
-        $parameters = [];
+        $this->parameters = [];
 
         /** @var Route $route */
         foreach ($routes as $route) {
@@ -54,12 +59,12 @@ class RouterBuilder
             if (preg_match_all(Route::PARAMETERS_FILTER_PATTERN, $pattern, $matches)) {
                 foreach ($matches[0] as $match) {
                     // Store unique parameters
-                    if (in_array($match, $parameters, true)) {
-                        $index = array_search($match, $parameters);
+                    if (in_array($match, $this->parameters, true)) {
+                        $index = array_search($match, $this->parameters);
                     } else {
                         // Calculate parameter index
-                        $index = count($parameters).'_parameter';
-                        $parameters[$index] = $match;
+                        $index = count($this->parameters).'_parameter';
+                        $this->parameters[$index] = $match;
                     }
 
                     // Rewrite pattern parameter
@@ -71,30 +76,32 @@ class RouterBuilder
             $routeStrings[$route->method][] = $pattern;
         }
 
-
-
         /** @var TreeNode[] $treeNodes */
         $treeNodes = [];
         foreach ($routeStrings as $httpMethod => $strings) {
             $treeNodes[$httpMethod] = $this->stringsTree->process($strings);
         }
 
-        $result = $treeNodes['GET']->toArray(function(string $value) use ($parameters) {
-            $matches = [];
-            if (preg_match_all('/(?<parameter>\d+_parameter)/', $value, $matches)) {
-                foreach ($matches['parameter'] as $parameterMatch) {
-                    // Check if node value is a parameter
-                    if (array_key_exists($parameterMatch, $parameters)) {
-                        $value = str_replace($parameterMatch, $parameters[$parameterMatch], $value);
-                    }
-                }
-                // Returned processed node value
-                return $value;
-            } else { // Just return node value
-                return $value;
-            }
-        });
+        // Convert Tree node to array
+        $result = $treeNodes['GET']->toArray();
 
         return $result;
+    }
+
+    public function treeNodeValueHandler(string $value): string
+    {
+        $matches = [];
+        if (preg_match_all('/(?<parameter>\d+_parameter)/', $value, $matches)) {
+            foreach ($matches['parameter'] as $parameterMatch) {
+                // Check if node value is a parameter
+                if (array_key_exists($parameterMatch, $this->parameters)) {
+                    $value = str_replace($parameterMatch, $this->parameters[$parameterMatch], $value);
+                }
+            }
+            // Returned processed node value
+            return $value;
+        } else { // Just return node value
+            return $value;
+        }
     }
 }
