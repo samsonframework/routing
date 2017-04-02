@@ -41,7 +41,7 @@ class RouterBuilder
 
         /** @var Route $route */
         foreach ($routes as $route) {
-            $routeStrings[$route->method][$route->pattern] = $route->identifier;
+            $routeStrings[$route->method][] = $route->pattern;
         }
 
         /** @var TreeNode[] $treeNodes */
