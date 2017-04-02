@@ -8,6 +8,7 @@
 namespace samsonframework\routing\tests;
 
 use samsonframework\routing\Core;
+use samsonframework\routing\HttpMethod;
 use samsonframework\routing\Route;
 use samsonframework\routing\RouteCollection;
 
@@ -43,7 +44,7 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         $route = null;
         $dispatchingResult = $core->dispatch(
             '/user/123/form/valid',
-            Route::METHOD_GET,
+            HttpMethod::METHOD_GET,
             $route
         );
 
@@ -59,7 +60,7 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         $route = null;
         $dispatchingResult = $core->dispatch(
             '/nouser/123/form/valid',
-            Route::METHOD_GET,
+            HttpMethod::METHOD_GET,
             $route
         );
 
