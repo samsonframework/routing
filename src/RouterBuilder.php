@@ -88,6 +88,13 @@ class RouterBuilder
         return $result;
     }
 
+    /**
+     * TreeNode value handler for rewriting parameters.
+     *
+     * @param string $value TreeNode value
+     *
+     * @return string Rewritten TreeNode value if it has parameters
+     */
     public function treeNodeValueHandler(string $value): string
     {
         $matches = [];
