@@ -5,12 +5,16 @@ SamsonFramework routing implementation
 > Probably the fastest possible routing logic implementation for PHP ever made. To 
 see performance comparison with other popular routers [click here](http://github.com/samsonframework/routingcompare)
 
-[![Latest Stable Version](https://poser.pugx.org/samsonframework/routing/v/stable.svg)](https://packagist.org/packages/samsonframework/routing)
-[![Build Status](https://scrutinizer-ci.com/g/samsonframework/routing/badges/build.png?b=master)](https://scrutinizer-ci.com/g/samsonframework/routing/build-status/master)
-[![Code Coverage](https://scrutinizer-ci.com/g/samsonframework/routing/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/samsonframework/routing/?branch=master)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/samsonframework/routing/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/samsonframework/routing/?branch=master) 
-[![Total Downloads](https://poser.pugx.org/samsonframework/routing/downloads.svg)](https://packagist.org/packages/samsonframework/routing)
+[![Latest Stable Version](https://poser.pugx.org/samsonframework/string-condition-tree/v/stable.svg)](https://packagist.org/packages/samsonframework/routing)
+[![Build Status](https://scrutinizer-ci.com/g/samsonframework/string-condition-tree/badges/build.png?b=master)](https://scrutinizer-ci.com/g/samsonframework/string-condition-tree/build-status/master)
+[![Coverage Status](https://coveralls.io/repos/github/samsonframework/string-condition-tree/badge.svg?branch=master)](https://coveralls.io/github/samsonframework/routing?branch=master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/samsonframework/string-condition-tree/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/samsonframework/string-condition-tree/?branch=master)
+[![Code Climate](https://codeclimate.com/github/samsonframework/string-condition-tree/badges/gpa.svg)](https://codeclimate.com/github/samsonframework/routing)
+[![Total Downloads](https://poser.pugx.org/samsonframework/string-condition-tree/downloads.svg)](https://packagist.org/packages/samsonframework/routing)
+[![StyleCI](https://styleci.io/repos/77138455/shield?branch=master)](https://styleci.io/repos/77138455)
 [![Stories in Ready](https://badge.waffle.io/samsonframework/routing.png?label=ready&title=Ready)](https://waffle.io/samsonframework/routing)
+[![Inline docs](http://inch-ci.org/github/samsonframework/routing.svg?branch=master)](http://inch-ci.org/github/samsonframework/routing)
+
 
 ##Documentation
 Follow [official documentation](http://github.com/samsonframework/routing/blob/master/docs/Index.md).
