@@ -113,9 +113,14 @@ class RouterBuilder
             $statement = $variable . ' === \'' . $prefix . '\'';
         }
 
-        $generator->defCondition($statement)
-            ->defLine('return [\'' . $identifier . '\', $parameters];')
-            ->end();
+        $condition = $generator->defCondition($statement);
+
+        // Define parameters definition to matched route arguments
+        foreach ($parameters as $parameter) {
+            $condition->defLine('$parameters[\''.$parameter.'\'] = $matches[\''.$parameter.'\'];');
+        }
+
+        return $condition->defLine('return [\'' . $identifier . '\', $parameters];')->end();
     }
 
     /**
@@ -206,7 +211,7 @@ class RouterBuilder
             }
 
             // Finish building regular expression
-            $regularExpression .= $pattern . '$/\', ' . $variable . ', $matches)';
+            $regularExpression .= $pattern . '/\', ' . $variable . ', $matches)';
         }
 
         return $regularExpression;
@@ -245,8 +250,8 @@ class RouterBuilder
                     $this->buildLogicConditions(
                         $child,
                         $condition,
-                        $startPosition + strlen($child->value),
-                        $this->buildPatternVariable($condition, $variable, $child->fullValue)
+                        $startPosition,
+                        $this->buildPatternVariable($condition, $variable, $child->value)
                     );
 
                     // Close condition

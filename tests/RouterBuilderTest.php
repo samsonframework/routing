@@ -77,19 +77,18 @@ class RouterBuilderTest extends \PHPUnit_Framework_TestCase
 
         $router = new \test\Router();
 
-//
-//        foreach ($routeArray as $identifier => $routeData) {
-//            if ($identifier === 'test-two-params-at-end'){
-//                $a = 1;
-//            }
-//            $result = $this->routerLogic($routeData[2], $routeData[0]);
-//            $this->assertEquals($identifier, $result[0]);
-//            if (isset($routeData[3])) {
-//                foreach ($routeData[3] as $key => $value) {
-//                    $this->assertArrayHasKey($key, $result[1]);
-//                    $this->assertEquals($value, $result[1][$key]);
-//                }
-//            }
-//        }
+        foreach ($routeArray as $identifier => $routeData) {
+            if ($identifier === 'test-two-params-at-end'){
+                $a = 1;
+            }
+            $result = $router->logic($routeData[2], $routeData[0]);
+            $this->assertEquals($identifier, $result[0]);
+            if (isset($routeData[3])) {
+                foreach ($routeData[3] as $key => $value) {
+                    $this->assertArrayHasKey($key, $result[1]);
+                    $this->assertEquals($value, $result[1][$key]);
+                }
+            }
+        }
     }
 }
