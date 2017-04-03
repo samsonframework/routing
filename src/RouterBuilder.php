@@ -169,6 +169,15 @@ class RouterBuilder
         return $newVariable;
     }
 
+    /**
+     * Build parametrized condition statement. Method fills  parameters array.
+     *
+     * @param string $pattern Route pattern
+     * @param string $variable Route variable name
+     * @param array  $parameters Return parameter names array
+     *
+     * @return string Parametrized condition statement
+     */
     protected function getParametrizedConditionExpression(string $pattern, string $variable, array &$parameters = [])
     {
         $regularExpression = '';
