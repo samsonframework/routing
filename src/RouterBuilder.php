@@ -73,6 +73,7 @@ class RouterBuilder
             ->defMethod('logic')
                 ->defDescription(['Dispatch route using routing PLD.'])
                 ->defArgument('path', 'string', 'Route path for dispatching')
+                ->defArgument('httpMethod', 'string', 'HTTP request method')
                 ->defComment()->defReturn('string|null', 'Dispatched route identifier')->end()
                 ->defLine('$parameters = [];');
         ;
