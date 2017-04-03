@@ -179,54 +179,28 @@ class RouterBuilder
             // Start building regular expression
             $regularExpression = 'preg_match(\'/';
 
+            $pattern = str_replace('/', '\/', $pattern);
+
             // Iterate matched parameters
             for ($i = 0, $count = count($matches['name']); $i < $count; $i++) {
                 // Define parameter filter
                 $filter = $matches['filter'][$i] !== '' ? $matches['filter'][$i] : '[^\/]+';
 
                 // Build regular expression
-                $regularExpression .= '(?<' . $matches['name'][$i] . '>' . $filter . ')';
+                $parameterExpression = '(?<' . $matches['name'][$i] . '>' . $filter . ')';
+
+                // Rewrite pattern parameter
+                $pattern = str_replace($matches[0][$i], $parameterExpression, $pattern);
 
                 // Gather found parameter names
                 $parameters[] = $matches['name'][$i];
             }
 
             // Finish building regular expression
-            $regularExpression .= '$/\', ' . $variable . ', $matches)';
+            $regularExpression .= $pattern . '$/\', ' . $variable . ', $matches)';
         }
 
         return $regularExpression;
-    }
-
-    protected function buildParametrizedMatchCondition(IfGenerator $generator, array $matches, string $variable): ConditionGenerator
-    {
-        $parameters = [];
-
-        // Build regular expression
-        $regularExpression = 'preg_match(\'/';
-
-        // Iterate matched parameters
-        for ($i = 0, $count = count($matches['name']); $i < $count; $i++) {
-            // Define parameter filter
-            $filter = $matches['filter'][$i] !== '' ? $matches['filter'][$i] : '[^\/]+';
-
-            // Build regular expression
-            $regularExpression .= '(?<' . $matches['name'][$i] . '>' . $filter . ')';
-
-            // Gather found parameter names
-            $parameters[] = $matches['name'][$i];
-        }
-
-        $regularExpression .= '$/\', ' . $variable . ', $matches)';
-
-        $condition = $generator->defCondition($regularExpression);
-
-        // Define parameters definition to matched route arguments
-        foreach ($parameters as $parameter) {
-            $condition->defLine('$parameters[\''.$parameter.'\'] = $matches[\''.$parameter.'\'];');
-        }
-
-        return $condition;
     }
 
     /**
