@@ -6,7 +6,11 @@
 
 namespace samsonframework\routing;
 
+use samsonframework\generator\AbstractGenerator;
 use samsonframework\generator\ClassGenerator;
+use samsonframework\generator\ConditionGenerator;
+use samsonframework\generator\FunctionGenerator;
+use samsonframework\generator\IfGenerator;
 use samsonframework\stringconditiontree\StringConditionTree;
 use samsonframework\stringconditiontree\TreeNode;
 
@@ -17,14 +21,14 @@ use samsonframework\stringconditiontree\TreeNode;
  */
 class RouterBuilder
 {
+    /** @var array Collection of routes pattern => identifier */
+    protected $routeIdentifiers = [];
+
     /** @var StringConditionTree Strings condition tree generator */
     protected $stringsTree;
 
     /** @var ClassGenerator PHP class code generator */
     protected $classGenerator;
-
-    /** @var array Routes collection map */
-    protected $parameters = [];
 
     /**
      * Router builder constructor.
@@ -36,79 +40,71 @@ class RouterBuilder
     {
         $this->classGenerator = $classGenerator;
         $this->stringsTree = $stringsTree;
-
-        $this->stringsTree->setTreeNodeValueHandler([$this, 'treeNodeValueHandler']);
     }
 
     public function build(RouteCollection $routes)
     {
         $routeStrings = [];
-
-        /** @var string[] $parameters Collection of parameters placeholders */
-        $this->parameters = [];
+        $this->routeIdentifiers = [];
 
         /** @var Route $route */
         foreach ($routes as $route) {
-            $pattern = $route->pattern;
-
-            /**
-             * Rewrite parameter patterns in routes with special symbols and
-             * store references to it.
-             */
-            $matches = [];
-            if (preg_match_all(Route::PARAMETERS_FILTER_PATTERN, $pattern, $matches)) {
-                foreach ($matches[0] as $match) {
-                    // Store unique parameters
-                    if (in_array($match, $this->parameters, true)) {
-                        $index = array_search($match, $this->parameters);
-                    } else {
-                        // Calculate parameter index
-                        $index = count($this->parameters).'_parameter';
-                        $this->parameters[$index] = $match;
-                    }
-
-                    // Rewrite pattern parameter
-                    $pattern = str_replace($match, $index, $pattern);
-                }
-            }
-
             // Store pattern in strings collection
-            $routeStrings[$route->method][] = $pattern;
+            $routeStrings[$route->method][] = $route->pattern;
+
+            // Store route identifier by its pattern
+            $this->routeIdentifiers[$route->pattern] = $route->identifier;
         }
 
         /** @var TreeNode[] $treeNodes */
         $treeNodes = [];
         foreach ($routeStrings as $httpMethod => $strings) {
-            $treeNodes[$httpMethod] = $this->stringsTree->process($strings);
+            // TODO: Fix this root node issue
+            $temp = $this->stringsTree->process($strings);
+
+            // Get inner nodes ignoring root node
+            $treeNodes[$httpMethod] = $temp->children[StringConditionTree::ROOT_NAME];
         }
 
-        // Convert Tree node to array
-        $result = $treeNodes['GET']->toArray();
+        $logicMethod = $this->classGenerator
+            ->defNamespace('test')
+            ->defName('Router')
+            ->defDescription(['PLD routing logic class'])
+            ->defMethod('logic')
+        ;
 
-        return $result;
+        $httpMethodCondition = $logicMethod->defIf();
+        foreach ($treeNodes as $httpMethod => $treeNode) {
+            $ifCondition = $httpMethodCondition
+                ->defCondition('$httpMethod === \''.$httpMethod.'\'');
+
+            $this->buildLogicConditions($treeNode, $ifCondition);
+
+            $ifCondition->end();
+        }
+
+        $code = $httpMethodCondition->end()->end()->code();
+
+        return $code;
     }
 
-    /**
-     * TreeNode value handler for rewriting parameters.
-     *
-     * @param string $value TreeNode value
-     *
-     * @return string Rewritten TreeNode value if it has parameters
-     */
-    public function treeNodeValueHandler(string $value): string
+    public function buildLogicConditions(TreeNode $treeNode, AbstractGenerator $ifGenerator)
     {
-        $matches = [];
-        if (preg_match_all('/(?<parameter>\d+_parameter)/', $value, $matches)) {
-            foreach ($matches['parameter'] as $parameterMatch) {
-                // Check if node value is a parameter
-                if (array_key_exists($parameterMatch, $this->parameters)) {
-                    $value = str_replace($parameterMatch, $this->parameters[$parameterMatch], $value);
-                }
+        $newGenerator = $ifGenerator->defIf();
+        /** @var TreeNode $child */
+        foreach ($treeNode as $child) {
+            $condition = $newGenerator->defCondition('$path === \''.$child->value.'\'');
+
+            // Add return value on deepest node
+            if ($child->value === StringConditionTree::SELF_NAME) {
+                $condition->defLine('return \'' . $this->routeIdentifiers[$child->parent->fullValue] . '\';');
             }
-            // Returned processed node value
-            return $value;
-        } else { // Just return node value
-            return $value;
+
+            $this->buildLogicConditions($child, $condition);
+
+            $condition->end();
         }
+
+        $newGenerator->end();
     }
 }
