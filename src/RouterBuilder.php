@@ -122,7 +122,11 @@ class RouterBuilder
 
                 // Check if nested nodes is not just @self node
                 if (count($child->children) > 1 || key($child->children) !== StringConditionTree::SELF_NAME) {
-                    $condition = $this->buildPartMatchCondition($newGenerator, $variable, $startPosition, $child->value);
+                    $condition = $this->buildPartMatchCondition(
+                        $newGenerator,
+                        $variable,
+                        $child->value
+                    );
 
                     // Go deeper into recursion
                     $this->buildLogicConditions(
@@ -149,9 +153,9 @@ class RouterBuilder
      * @param string                                           $variable   Pattern variable name
      * @param string                                           $identifier Route identifier
      *
-     * @return ConditionGenerator Condition Generator
+     * @return AbstractGenerator|ConditionGenerator Condition Generator
      */
-    protected function buildExactMatchCondition(AbstractGenerator $generator, string $prefix, string $variable, string $identifier): ConditionGenerator
+    protected function buildExactMatchCondition(AbstractGenerator $generator, string $prefix, string $variable, string $identifier): AbstractGenerator
     {
         // Get parametrized condition statement
         $parameters = [];
@@ -220,12 +224,11 @@ class RouterBuilder
      *
      * @param IfGenerator $generator     Condition generator
      * @param string      $variable      Pattern variable name
-     * @param int         $startPosition Route starting character position
      * @param string      $value         Route prefix
      *
      * @return ConditionGenerator Condition generator
      */
-    public function buildPartMatchCondition(IfGenerator $generator, string $variable, int $startPosition, string $value): ConditionGenerator
+    public function buildPartMatchCondition(IfGenerator $generator, string $variable, string $value): ConditionGenerator
     {
         $parameters = [];
         // Get parametrized condition statement
@@ -233,7 +236,7 @@ class RouterBuilder
 
         // No parameters - get part matching condition statement
         if (!count($parameters)) {
-            $statement = 'substr(' . $variable . ', ' . $startPosition . ', ' . strlen($value) . ') === \'' . $value . '\'';
+            $statement = 'substr(' . $variable . ', 0, ' . strlen($value) . ') === \'' . $value . '\'';
         }
 
         $condition = $generator->defCondition($statement);
