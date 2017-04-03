@@ -94,6 +94,8 @@ class RouterBuilder
     }
 
     /**
+     * Recursive logic function generator.
+     *
      * @param TreeNode                                         $treeNode
      * @param AbstractGenerator|ConditionGenerator|IfGenerator $parentGenerator
      * @param int                                              $startPosition
