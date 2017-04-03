@@ -88,21 +88,38 @@ class RouterBuilder
         return $code;
     }
 
-    public function buildLogicConditions(TreeNode $treeNode, AbstractGenerator $ifGenerator)
+    /**
+     * @param TreeNode          $treeNode
+     * @param AbstractGenerator|ConditionGenerator|IfGenerator $parentGenerator
+     * @param int               $startPosition
+     * @param string            $variable
+     */
+    public function buildLogicConditions(TreeNode $treeNode, AbstractGenerator $parentGenerator, $startPosition = 0, $variable = '$path')
     {
-        $newGenerator = $ifGenerator->defIf();
+        $newGenerator = $parentGenerator->defIf();
+
         /** @var TreeNode $child */
         foreach ($treeNode as $child) {
-            $condition = $newGenerator->defCondition('$path === \''.$child->value.'\'');
+            // Generate condition for searching prefix
+            if ($child->value !== StringConditionTree::SELF_NAME) {
+                // If nested nodes has self pointer render this condition on this level
+                if (array_key_exists(StringConditionTree::SELF_NAME, $child->children)) {
+                    $newGenerator->defCondition($variable . ' === \'' . $child->value . '\'')
+                        ->defLine('return \'' . $this->routeIdentifiers[$child->fullValue] . '\';')
+                        ->end();
+                }
 
-            // Add return value on deepest node
-            if ($child->value === StringConditionTree::SELF_NAME) {
-                $condition->defLine('return \'' . $this->routeIdentifiers[$child->parent->fullValue] . '\';');
+                $condition = $newGenerator->defCondition('substr(' . $variable . ', ' . $startPosition . ', ' . strlen($child->value) . ') === \'' . $child->value . '\'');
+
+                // Add return value on deepest node
+                if ($child->value !== StringConditionTree::SELF_NAME) {
+                    $newVariable = '$path' . rand(1000, 100000);
+                    $condition->defLine($newVariable . ' = substr(' . $variable . ', ' . strlen($child->fullValue) . '));');
+                    $this->buildLogicConditions($child, $condition, $startPosition, $newVariable);
+                }
+
+                $condition->end();
             }
-
-            $this->buildLogicConditions($child, $condition);
-
-            $condition->end();
         }
 
         $newGenerator->end();
