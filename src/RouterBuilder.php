@@ -71,6 +71,10 @@ class RouterBuilder
             ->defName('Router')
             ->defDescription(['PLD routing logic class'])
             ->defMethod('logic')
+                ->defDescription(['Dispatch route using routing PLD.'])
+                ->defArgument('path', 'string', 'Route path for dispatching')
+                ->defComment()->defReturn('string|null', 'Dispatched route identifier')->end()
+                ->defLine('$parameters = [];');
         ;
 
         $httpMethodCondition = $logicMethod->defIf();
@@ -89,6 +93,59 @@ class RouterBuilder
     }
 
     /**
+     * Build exact tree node route match condition.
+     *
+     * @param AbstractGenerator|ConditionGenerator|IfGenerator $generator  Code generator
+     * @param TreeNode                                         $node       Tree node
+     * @param string                                           $variable   Pattern variable name
+     * @param string                                           $identifier Route identifier
+     */
+    protected function buildExactMatchCondition(AbstractGenerator $generator, TreeNode $node, string $variable, string $identifier)
+    {
+        $generator->defCondition($variable . ' === \'' . $node->value . '\'')
+            ->defLine('return \'' . $identifier . '\';')
+            ->end();
+    }
+
+    /**
+     * Build partly tree node route match condition.
+     *
+     * @param IfGenerator $generator Code generator
+     * @param string            $variable Pattern variable name
+     * @param int               $startPosition Route starting character position
+     * @param string            $value Route prefix
+     *
+     * @return ConditionGenerator New condition generator
+     */
+    public function buildPartMatchCondition(IfGenerator $generator, string $variable, int $startPosition, string $value): ConditionGenerator
+    {
+        // Create condition for matching prefix
+        return $generator->defCondition(
+            'substr(' . $variable . ', ' . $startPosition . ', ' . strlen($value) . ') === \'' . $value . '\''
+        );
+    }
+
+    /**
+     * Build new pattern variable definition.
+     *
+     * @param ConditionGenerator $generator Condition generator
+     * @param string             $variable Pattern variable name
+     * @param string             $value Route prefix
+     * @param string             $variableName New variable name prefix
+     *
+     * @return string New built variable name
+     */
+    public function buildPatternVariable(ConditionGenerator $generator, string $variable, string $value, string $variableName = '$path'): string
+    {
+        // Create new variable
+        $newVariable = $variableName . rand(1000, 100000);
+
+        $generator->defLine($newVariable . ' = substr(' . $variable . ', ' . strlen($value) . ');');
+
+        return $newVariable;
+    }
+
+    /**
      * @param TreeNode          $treeNode
      * @param AbstractGenerator|ConditionGenerator|IfGenerator $parentGenerator
      * @param int               $startPosition
@@ -96,29 +153,38 @@ class RouterBuilder
      */
     public function buildLogicConditions(TreeNode $treeNode, AbstractGenerator $parentGenerator, $startPosition = 0, $variable = '$path')
     {
+        // Start new condition group definition
         $newGenerator = $parentGenerator->defIf();
 
         /** @var TreeNode $child */
         foreach ($treeNode as $child) {
             // Generate condition for searching prefix
             if ($child->value !== StringConditionTree::SELF_NAME) {
-                // If nested nodes has self pointer render this condition on this level
+                // If nested nodes has @self pointer render this condition in current condition
                 if (array_key_exists(StringConditionTree::SELF_NAME, $child->children)) {
-                    $newGenerator->defCondition($variable . ' === \'' . $child->value . '\'')
-                        ->defLine('return \'' . $this->routeIdentifiers[$child->fullValue] . '\';')
-                        ->end();
+                    $this->buildExactMatchCondition(
+                        $newGenerator,
+                        $child,
+                        $variable,
+                        $this->routeIdentifiers[$child->fullValue]
+                    );
                 }
 
-                $condition = $newGenerator->defCondition('substr(' . $variable . ', ' . $startPosition . ', ' . strlen($child->value) . ') === \'' . $child->value . '\'');
+                // Check if nested nodes is not just @self node
+                if (count($child->children) > 1 || key($child->children) !== StringConditionTree::SELF_NAME) {
+                    $condition = $this->buildPartMatchCondition($newGenerator, $variable, $startPosition, $child->value);
 
-                // Add return value on deepest node
-                if ($child->value !== StringConditionTree::SELF_NAME) {
-                    $newVariable = '$path' . rand(1000, 100000);
-                    $condition->defLine($newVariable . ' = substr(' . $variable . ', ' . strlen($child->fullValue) . '));');
-                    $this->buildLogicConditions($child, $condition, $startPosition, $newVariable);
+                    // Go deeper into recursion
+                    $this->buildLogicConditions(
+                        $child,
+                        $condition,
+                        $startPosition + strlen($child->value),
+                        $this->buildPatternVariable($condition, $variable, $child->fullValue)
+                    );
+
+                    // Close condition
+                    $condition->end();
                 }
-
-                $condition->end();
             }
         }
 

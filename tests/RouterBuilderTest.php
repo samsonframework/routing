@@ -71,12 +71,12 @@ class RouterBuilderTest extends \PHPUnit_Framework_TestCase
 
         $tree = $routerBuilder->build($routes);
 
-        $this->routerLogicFunction = '__router'.rand(0, 9999);
-//        $routerLogic = $generator->generate($this->routerLogicFunction);
-//
-//        // Create real file for debugging
-//        file_put_contents(__DIR__.'/testLogic.php', '<?php '."\n".$routerLogic);
-//        require(__DIR__.'/testLogic.php');
+        // Create real file for debugging
+        file_put_contents(__DIR__.'/testLogic2.php', '<?php '."\n".$tree);
+        require(__DIR__.'/testLogic2.php');
+
+        $router = new \test\Router();
+
 //
 //        foreach ($routeArray as $identifier => $routeData) {
 //            if ($identifier === 'test-two-params-at-end'){
