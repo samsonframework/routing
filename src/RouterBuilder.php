@@ -56,7 +56,7 @@ class RouterBuilder
             $this->routeIdentifiers[$route->pattern] = $route->identifier;
         }
 
-        /** @var TreeNode[] $treeNodes */
+        /** @var TreeNode[] $treeNodes Group tree nodes under http method type */
         $treeNodes = [];
         foreach ($routeStrings as $httpMethod => $strings) {
             // TODO: Fix this root node issue
@@ -76,7 +76,8 @@ class RouterBuilder
                 ->defArgument('path', 'string', 'Route path for dispatching')
                 ->defArgument('httpMethod', 'string', 'HTTP request method')
                 ->defComment()->defReturn('string|null', 'Dispatched route identifier')->end()
-                ->defLine('$parameters = [];');
+                ->defLine('$parameters = [];')
+                ->defLine('$matches = [];');
 
         // Define top level http method type conditions
         $httpMethodCondition = $logicMethod->defIf();
@@ -97,33 +98,55 @@ class RouterBuilder
      * Build exact tree node route match condition.
      *
      * @param AbstractGenerator|ConditionGenerator|IfGenerator $generator  Code generator
-     * @param TreeNode                                         $node       Tree node
+     * @param string                                           $pattern    Route prefix
      * @param string                                           $variable   Pattern variable name
      * @param string                                           $identifier Route identifier
      */
-    protected function buildExactMatchCondition(AbstractGenerator $generator, TreeNode $node, string $variable, string $identifier)
+    protected function buildExactMatchCondition(AbstractGenerator $generator, string $prefix, string $variable, string $identifier)
     {
-        $generator->defCondition($variable . ' === \'' . $node->value . '\'')
-            ->defLine('return \'' . $identifier . '\';')
+        // Get parametrized condition statement
+        $parameters = [];
+        $statement = $this->getParametrizedConditionExpression($prefix, $variable, $parameters);
+
+        // No parameters - get part matching condition statement
+        if (!count($parameters)) {
+            $statement = $variable . ' === \'' . $prefix . '\'';
+        }
+
+        $generator->defCondition($statement)
+            ->defLine('return [\'' . $identifier . '\', $parameters];')
             ->end();
     }
 
     /**
      * Build partly tree node route match condition.
      *
-     * @param IfGenerator $generator Code generator
-     * @param string            $variable Pattern variable name
-     * @param int               $startPosition Route starting character position
-     * @param string            $value Route prefix
+     * @param IfGenerator $generator     Condition generator
+     * @param string      $variable      Pattern variable name
+     * @param int         $startPosition Route starting character position
+     * @param string      $value         Route prefix
      *
-     * @return ConditionGenerator New condition generator
+     * @return ConditionGenerator Condition generator
      */
     public function buildPartMatchCondition(IfGenerator $generator, string $variable, int $startPosition, string $value): ConditionGenerator
     {
-        // Create condition for matching prefix
-        return $generator->defCondition(
-            'substr(' . $variable . ', ' . $startPosition . ', ' . strlen($value) . ') === \'' . $value . '\''
-        );
+        $parameters = [];
+        // Get parametrized condition statement
+        $statement = $this->getParametrizedConditionExpression($value, $variable, $parameters);
+
+        // No parameters - get part matching condition statement
+        if (!count($parameters)) {
+            $statement = 'substr(' . $variable . ', ' . $startPosition . ', ' . strlen($value) . ') === \'' . $value . '\'';
+        }
+
+        $condition = $generator->defCondition($statement);
+
+        // Define parameters definition to matched route arguments
+        foreach ($parameters as $parameter) {
+            $condition->defLine('$parameters[\''.$parameter.'\'] = $matches[\''.$parameter.'\'];');
+        }
+        
+        return $condition;
     }
 
     /**
@@ -146,6 +169,66 @@ class RouterBuilder
         return $newVariable;
     }
 
+    protected function getParametrizedConditionExpression(string $pattern, string $variable, array &$parameters = [])
+    {
+        $regularExpression = '';
+
+        // Find all parameters
+        $matches = [];
+        if (preg_match_all(Route::PARAMETERS_FILTER_PATTERN, $pattern, $matches)) {
+            // Start building regular expression
+            $regularExpression = 'preg_match(\'/';
+
+            // Iterate matched parameters
+            for ($i = 0, $count = count($matches['name']); $i < $count; $i++) {
+                // Define parameter filter
+                $filter = $matches['filter'][$i] !== '' ? $matches['filter'][$i] : '[^\/]+';
+
+                // Build regular expression
+                $regularExpression .= '(?<' . $matches['name'][$i] . '>' . $filter . ')';
+
+                // Gather found parameter names
+                $parameters[] = $matches['name'][$i];
+            }
+
+            // Finish building regular expression
+            $regularExpression .= '$/\', ' . $variable . ', $matches)';
+        }
+
+        return $regularExpression;
+    }
+
+    protected function buildParametrizedMatchCondition(IfGenerator $generator, array $matches, string $variable): ConditionGenerator
+    {
+        $parameters = [];
+
+        // Build regular expression
+        $regularExpression = 'preg_match(\'/';
+
+        // Iterate matched parameters
+        for ($i = 0, $count = count($matches['name']); $i < $count; $i++) {
+            // Define parameter filter
+            $filter = $matches['filter'][$i] !== '' ? $matches['filter'][$i] : '[^\/]+';
+
+            // Build regular expression
+            $regularExpression .= '(?<' . $matches['name'][$i] . '>' . $filter . ')';
+
+            // Gather found parameter names
+            $parameters[] = $matches['name'][$i];
+        }
+
+        $regularExpression .= '$/\', ' . $variable . ', $matches)';
+
+        $condition = $generator->defCondition($regularExpression);
+
+        // Define parameters definition to matched route arguments
+        foreach ($parameters as $parameter) {
+            $condition->defLine('$parameters[\''.$parameter.'\'] = $matches[\''.$parameter.'\'];');
+        }
+
+        return $condition;
+    }
+
     /**
      * @param TreeNode          $treeNode
      * @param AbstractGenerator|ConditionGenerator|IfGenerator $parentGenerator
@@ -165,7 +248,7 @@ class RouterBuilder
                 if (array_key_exists(StringConditionTree::SELF_NAME, $child->children)) {
                     $this->buildExactMatchCondition(
                         $newGenerator,
-                        $child,
+                        $child->value,
                         $variable,
                         $this->routeIdentifiers[$child->fullValue]
                     );
