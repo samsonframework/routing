@@ -66,6 +66,7 @@ class RouterBuilder
             $treeNodes[$httpMethod] = $temp->children[StringConditionTree::ROOT_NAME];
         }
 
+        // Generate class definition and logic method definition
         $logicMethod = $this->classGenerator
             ->defNamespace('test')
             ->defName('Router')
@@ -76,21 +77,20 @@ class RouterBuilder
                 ->defArgument('httpMethod', 'string', 'HTTP request method')
                 ->defComment()->defReturn('string|null', 'Dispatched route identifier')->end()
                 ->defLine('$parameters = [];');
-        ;
 
+        // Define top level http method type conditions
         $httpMethodCondition = $logicMethod->defIf();
         foreach ($treeNodes as $httpMethod => $treeNode) {
-            $ifCondition = $httpMethodCondition
-                ->defCondition('$httpMethod === \''.$httpMethod.'\'');
+            $ifCondition = $httpMethodCondition->defCondition('$httpMethod === \''.$httpMethod.'\'');
 
+            // Recursively build string condition tree as PLD
             $this->buildLogicConditions($treeNode, $ifCondition);
 
             $ifCondition->end();
         }
 
-        $code = $httpMethodCondition->end()->end()->code();
-
-        return $code;
+        // Close logic method and class definition and generate PHP code
+        return $httpMethodCondition->end()->end()->code();
     }
 
     /**
