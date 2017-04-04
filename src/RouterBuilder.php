@@ -92,6 +92,7 @@ class RouterBuilder
             // Recursively build string condition tree as PLD
             $this->buildLogicConditions($treeNode, $httpMethodFunction);
 
+            // Add empty dispatch return
             $httpMethodFunction->defLine('return null;')->end();
 
             $httpMethodCondition->defCondition('$httpMethod === \'' . $httpMethod . '\'')
@@ -100,7 +101,7 @@ class RouterBuilder
         }
 
         // Close logic method and class definition and generate PHP code
-        return $httpMethodCondition->end()->defLine('return null;')->end()->code();
+        return $httpMethodCondition->defCondition()->defLine('return null;')->end()->end()->end()->code();
     }
 
     /**
