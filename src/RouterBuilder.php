@@ -65,28 +65,38 @@ class RouterBuilder
             $treeNodes[$httpMethod] = $temp->children[StringConditionTree::ROOT_NAME];
         }
 
-        // Generate class definition and logic method definition
-        $logicMethod = $this->classGenerator
+        // Generate class definition
+        $classGenerator = $this->classGenerator
             ->defNamespace('test')
             ->defName('Router')
-            ->defDescription(['PLD routing logic class'])
-            ->defMethod('logic')
+            ->defDescription(['PLD routing logic class']);
+
+        // Generate logic method definition
+        $logicMethod = $classGenerator->defMethod('logic')
             ->defDescription(['Dispatch route using routing PLD.'])
             ->defArgument('path', 'string', 'Route path for dispatching')
             ->defArgument('httpMethod', 'string', 'HTTP request method')
-            ->defComment()->defReturn('string|null', 'Dispatched route identifier')->end()
-            ->defLine('$parameters = [];')
-            ->defLine('$matches = [];');
+            ->defReturnType('string|null', 'Dispatched route identifier');
 
         /** @var IfGenerator $httpMethodCondition Define top level http method type conditions */
         $httpMethodCondition = $logicMethod->defIf();
         foreach ($treeNodes as $httpMethod => $treeNode) {
-            $ifCondition = $httpMethodCondition->defCondition('$httpMethod === \'' . $httpMethod . '\'');
+            $httpMethodName = 'logic' . ucfirst(strtolower($httpMethod));
+            $httpMethodFunction = $classGenerator->defProtectedMethod($httpMethodName)
+                ->defDescription(['Dispatch routes for ' . $httpMethod . ' HTTP method.'])
+                ->defArgument('path', 'string', 'Route path for dispatching')
+                ->defLine('$parameters = [];')
+                ->defLine('$matches = [];')
+                ->defReturnType('string|null', 'Dispatched route identifier');
 
             // Recursively build string condition tree as PLD
-            $this->buildLogicConditions($treeNode, $ifCondition);
+            $this->buildLogicConditions($treeNode, $httpMethodFunction);
 
-            $ifCondition->end();
+            $httpMethodFunction->defLine('return null;')->end();
+
+            $httpMethodCondition->defCondition('$httpMethod === \'' . $httpMethod . '\'')
+                ->defLine('return $this->' . $httpMethodName . '($path, $httpMethod);')
+                ->end();
         }
 
         // Close logic method and class definition and generate PHP code

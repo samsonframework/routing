@@ -8,10 +8,9 @@
 namespace samsonframework\routing\tests;
 
 use samsonframework\generator\ClassGenerator;
-use samsonframework\routing\RouterBuilder;
-use samsonframework\routing\generator\Structure;
 use samsonframework\routing\Route;
 use samsonframework\routing\RouteCollection;
+use samsonframework\routing\RouterBuilder;
 use samsonframework\stringconditiontree\StringConditionTree;
 
 
@@ -78,9 +77,6 @@ class RouterBuilderTest extends \PHPUnit_Framework_TestCase
         $router = new \test\Router();
 
         foreach ($routeArray as $identifier => $routeData) {
-            if ($identifier === 'test-two-params-at-end'){
-                $a = 1;
-            }
             $result = $router->logic($routeData[2], $routeData[0]);
             $this->assertEquals($identifier, $result[0]);
             if (isset($routeData[3])) {
