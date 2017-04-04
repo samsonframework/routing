@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: VITALYIEGOROV
@@ -58,7 +58,6 @@ class RouterBuilderTest extends \PHPUnit_Framework_TestCase
             'user-post-by-id-param3' => array('POST', '/cms/gift/form/{id}', '/cms/gift/form/123', array('id' => '123')),
             'user-post-by-id-param4' => array('POST', '/cms/gift/{id}/{search}', '/cms/gift/123/321', array('id' => '123', 'search' => '321')),
         );
-
 
         // Create routes collection
         $routes = new RouteCollection();
