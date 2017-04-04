@@ -246,7 +246,12 @@ class RouterBuilder
 
         // No parameters - get part matching condition statement
         if (!count($parameters)) {
-            $statement = 'substr(' . $variable . ', 0, ' . strlen($value) . ') === \'' . $value . '\'';
+            $valueLength = strlen($value);
+            if ($valueLength > 1) {
+                $statement = 'substr(' . $variable . ', 0, ' . strlen($value) . ') === \'' . $value . '\'';
+            } else { // Optimisation for one character
+                $statement = $variable . '{0} === \'' . $value . '\'';
+            }
         }
 
         $condition = $generator->defCondition($statement);
