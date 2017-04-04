@@ -50,6 +50,6 @@ class Route
         $this->method = $method;
 
         // Every route should have an identifier otherwise create unique
-        $this->identifier = null !== $identifier ? $identifier : uniqid('route', true);
+        $this->identifier = $identifier ?? uniqid('route', true);
     }
 }
