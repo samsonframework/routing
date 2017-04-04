@@ -169,7 +169,7 @@ class RouterBuilder
     {
         // Get parametrized condition statement
         $parameters = [];
-        $statement = $this->getParametrizedConditionExpression($prefix, $variable, $parameters);
+        $statement = $this->getParametrizedConditionExpression($prefix, $variable, $parameters, true);
 
         // No parameters - get part matching condition statement
         if (!count($parameters)) {
@@ -195,7 +195,7 @@ class RouterBuilder
      *
      * @return string Parametrized condition statement
      */
-    protected function getParametrizedConditionExpression(string $pattern, string $variable, array &$parameters = [])
+    protected function getParametrizedConditionExpression(string $pattern, string $variable, array &$parameters = [], bool $isFinal = false)
     {
         $regularExpression = '';
 
@@ -223,7 +223,7 @@ class RouterBuilder
             }
 
             // Finish building regular expression
-            $regularExpression .= $pattern . '/\', ' . $variable . ', $matches)';
+            $regularExpression .= $pattern . ($isFinal ? '$' : '') . '/\', ' . $variable . ', $matches)';
         }
 
         return $regularExpression;
