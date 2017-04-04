@@ -248,7 +248,7 @@ class RouterBuilder
         if (!count($parameters)) {
             $valueLength = strlen($value);
             if ($valueLength > 1) {
-                $statement = 'substr(' . $variable . ', 0, ' . strlen($value) . ') === \'' . $value . '\'';
+                $statement = 'strpos(' . $variable . ', \'' . $value . '\') === 0';
             } else { // Optimisation for one character
                 $statement = $variable . '{0} === \'' . $value . '\'';
             }
