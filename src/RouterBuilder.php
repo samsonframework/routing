@@ -58,11 +58,8 @@ class RouterBuilder
         /** @var TreeNode[] $treeNodes Group tree nodes under http method type */
         $treeNodes = [];
         foreach ($routeStrings as $httpMethod => $strings) {
-            // TODO: Fix this root node issue
-            $temp = $this->stringsTree->process($strings);
-
-            // Get inner nodes ignoring root node
-            $treeNodes[$httpMethod] = $temp->children[StringConditionTree::ROOT_NAME];
+            // Build string condition tree grouping by http method
+            $treeNodes[$httpMethod] = $this->stringsTree->process($strings);
         }
 
         // Generate class definition
@@ -133,10 +130,12 @@ class RouterBuilder
 
                 // Check if nested nodes is not just @self node
                 if (count($child->children) > 1 || key($child->children) !== StringConditionTree::SELF_NAME) {
+                    $newVariable = '';
                     $condition = $this->buildPartMatchCondition(
                         $newGenerator,
                         $variable,
-                        $child->value
+                        $child->value,
+                        $newVariable
                     );
 
                     // Go deeper into recursion
@@ -144,7 +143,7 @@ class RouterBuilder
                         $child,
                         $condition,
                         $startPosition,
-                        $this->buildPatternVariable($condition, $variable, $child->value)
+                        $newVariable
                     );
 
                     // Close condition
@@ -233,17 +232,20 @@ class RouterBuilder
     /**
      * Build partly tree node route match condition.
      *
-     * @param IfGenerator $generator     Condition generator
-     * @param string      $variable      Pattern variable name
-     * @param string      $value         Route prefix
+     * @param IfGenerator $generator   Condition generator
+     * @param string      $variable    Pattern variable name
+     * @param string      $value       Route prefix
+     * @param string|null $newVariable Returning new variable name
      *
      * @return ConditionGenerator Condition generator
      */
-    public function buildPartMatchCondition(IfGenerator $generator, string $variable, string $value): ConditionGenerator
+    public function buildPartMatchCondition(IfGenerator $generator, string $variable, string $value, string &$newVariable = null): ConditionGenerator
     {
         $parameters = [];
         // Get parametrized condition statement
         $statement = $this->getParametrizedConditionExpression($value, $variable, $parameters);
+        // Store current variable
+        $newVariable = $variable;
 
         // No parameters - get part matching condition statement
         if (!count($parameters)) {
@@ -257,9 +259,15 @@ class RouterBuilder
 
         $condition = $generator->defCondition($statement);
 
-        // Define parameters definition to matched route arguments
-        foreach ($parameters as $parameter) {
-            $condition->defLine('$parameters[\'' . $parameter . '\'] = $matches[\'' . $parameter . '\'];');
+        if (count($parameters)) {
+            // Define parameters definition to matched route arguments
+            foreach ($parameters as $parameter) {
+                $condition->defLine('$parameters[\'' . $parameter . '\'] = $matches[\'' . $parameter . '\'];');
+            }
+            // Remove parameters from route
+            $condition->defLine($variable . ' = str_replace($matches[0], \'\', ' . $variable . ');');
+        } else { // Create new variable
+            $newVariable = $this->buildPatternVariable($condition, $variable, $value);
         }
 
         return $condition;
