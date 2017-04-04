@@ -192,6 +192,7 @@ class RouterBuilder
      * @param string $pattern    Route pattern
      * @param string $variable   Route variable name
      * @param array  $parameters Return parameter names array
+     * @param bool   $isFinal    Flag if this is final branch and pattern should check line ending
      *
      * @return string Parametrized condition statement
      */
@@ -205,7 +206,11 @@ class RouterBuilder
             // Start building regular expression
             $regularExpression = 'preg_match(\'/';
 
-            $pattern = str_replace('/', '\/', $pattern);
+            $pattern = str_replace(
+                ['/', '$', '\'', '"'],
+                ['\/', '\$', '\\\'', '\"'],
+                $pattern
+            );
 
             // Iterate matched parameters
             for ($i = 0, $count = count($matches['name']); $i < $count; $i++) {
