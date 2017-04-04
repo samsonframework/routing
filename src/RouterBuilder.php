@@ -95,7 +95,7 @@ class RouterBuilder
             $httpMethodFunction->defLine('return null;')->end();
 
             $httpMethodCondition->defCondition('$httpMethod === \'' . $httpMethod . '\'')
-                ->defLine('return $this->' . $httpMethodName . '($path, $httpMethod);')
+                ->defLine('return $this->' . $httpMethodName . '($path);')
                 ->end();
         }
 
