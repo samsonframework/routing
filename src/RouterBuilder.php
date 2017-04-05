@@ -20,9 +20,6 @@ use samsonframework\stringconditiontree\TreeNode;
  */
 class RouterBuilder
 {
-    /** @var array Collection of routes pattern => identifier */
-    protected $routeIdentifiers = [];
-
     /** @var StringConditionTree Strings condition tree generator */
     protected $stringsTree;
 
@@ -43,16 +40,11 @@ class RouterBuilder
 
     public function build(RouteCollection $routes)
     {
-        $routeStrings = [];
-        $this->routeIdentifiers = [];
-
         /** @var Route $route */
+        $routeStrings = [];
         foreach ($routes as $route) {
             // Store pattern in strings collection
-            $routeStrings[$route->method][] = $route->pattern;
-
-            // Store route identifier by its pattern
-            $this->routeIdentifiers[$route->pattern] = $route->identifier;
+            $routeStrings[$route->method][$route->pattern] = $route->identifier;
         }
 
         /** @var TreeNode[] $treeNodes Group tree nodes under http method type */
@@ -119,17 +111,17 @@ class RouterBuilder
             // Generate condition for searching prefix
             if ($child->value !== StringConditionTree::SELF_NAME) {
                 // If nested nodes has @self pointer render this condition in current condition
-                if (array_key_exists(StringConditionTree::SELF_NAME, $child->children)) {
+                if ($child->identifier !== '') {
                     $this->buildExactMatchCondition(
                         $newGenerator,
                         $child->value,
                         $variable,
-                        $this->routeIdentifiers[$child->fullValue]
+                        $child->identifier
                     );
                 }
 
                 // Check if nested nodes is not just @self node
-                if (count($child->children) > 1 || key($child->children) !== StringConditionTree::SELF_NAME) {
+                if (count($child->children)) {
                     $newVariable = '';
                     $condition = $this->buildPartMatchCondition(
                         $newGenerator,
